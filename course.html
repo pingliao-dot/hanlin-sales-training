@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>課程 ・ 翰林業務教育訓練平台</title>
+  <link rel="stylesheet" href="css/style.css?v=28" />
+</head>
+<body class="course-page">
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">翰</span>
+        <span class="brand-text">業務教育訓練平台</span>
+      </a>
+      <nav class="header-nav">
+        <a href="index.html">← 回學習地圖</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 扁的步驟 BAR：只留產品名稱 + 步驟進度 -->
+  <div class="course-bar">
+    <div class="wrap course-bar-inner">
+      <h1 id="courseTitle" class="course-bar-title"></h1>
+      <div class="steps-tracker" id="stepsTracker"></div>
+      <button id="resetBtn" class="course-reset" title="重設此課程進度">重設</button>
+    </div>
+  </div>
+
+  <main class="course-main">
+    <div class="course-main-inner">
+      <div id="steps"><!-- 由 JS 產生 --></div>
+
+      <div id="finishBanner" class="cert" hidden>
+        <div class="cert-confetti" id="confetti"></div>
+        <div class="cert-medal">🏅</div>
+        <p class="cert-kicker">結業認證 ・ COMPLETED</p>
+        <h2 class="cert-title">恭喜完成「<span id="finishName"></span>」！</h2>
+        <p class="cert-sub">你已走完這個專案的所有訓練，離獨當一面又近了一步 👏</p>
+        <div class="cert-actions">
+          <a href="index.html" class="btn btn-gold">← 回學習地圖，挑戰下一個</a>
+          <button class="btn btn-ghost" id="reviewBtn">再複習一次</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js?v=28"></script>
+  <script src="js/courses.js?v=28"></script>
+  <script src="js/progress.js?v=28"></script>
+  <script src="js/course.js?v=28"></script>
+  <script src="js/auth.js?v=28"></script>
+</body>
+</html>

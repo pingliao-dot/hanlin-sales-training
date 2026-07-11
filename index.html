@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>翰林業務教育訓練平台</title>
+  <link rel="stylesheet" href="css/style.css?v=28" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">翰</span>
+        <span class="brand-text">業務教育訓練平台</span>
+      </a>
+      <nav class="header-nav">
+        <a href="index.html" class="active">學習地圖</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <p class="hero-kicker">BUSINESS TRAINING</p>
+        <h1>一塊一塊，把專業學起來</h1>
+        <p class="hero-sub">每個專案是一個學習區塊。請點擊區塊進入，並依序完成區塊中的任務。</p>
+      </div>
+    </section>
+
+    <section class="wrap blocks-section">
+      <div class="section-head">
+        <span class="section-watermark">BASIC</span>
+        <p class="eng-kicker">Basic Learning</p>
+        <h2>基礎學習區塊</h2>
+        <p class="section-note">
+          <span class="ai-badge">🤖 AI 生成</span>
+          <span>部份教材由 NotebookLM AI 協助生成，<mark class="hl">內容如有錯字敬請見諒，請將重點放在教學內容與觀念理解上。</mark></span>
+        </p>
+      </div>
+      <div id="blocks" class="blocks-grid"><!-- 由 JS 產生 --></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">翰林業務教育訓練平台 ・ 內部教育訓練使用</div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js?v=28"></script>
+  <script src="js/courses.js?v=28"></script>
+  <script src="js/progress.js?v=28"></script>
+  <script src="js/home.js?v=28"></script>
+  <script src="js/auth.js?v=28"></script>
+</body>
+</html>

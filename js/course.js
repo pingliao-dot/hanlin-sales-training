@@ -1,0 +1,276 @@
+/* =========================================================
+   課程頁：單頁精靈（一次只顯示一步）
+   - 畫面上「只出現目前這一步」，下面不預先出現其他步驟
+   - 按「已看完，前往下一步」才切換到下一步
+   - 要回看已完成步驟：點最上方進度條的綠色節點
+   - 簡報可翻頁、可全螢幕
+   由 auth.js 在登入成功、進度載入後呼叫 initCourse()
+   ========================================================= */
+function initCourse() {
+  var params = new URLSearchParams(location.search);
+  var courseId = params.get("id");
+  var course = getCourse(courseId);
+
+  if (!course) {
+    document.getElementById("courseTitle").textContent = "找不到課程";
+    return;
+  }
+
+  var total = course.steps.length;
+  var activeIndex = null;   // 目前顯示的步驟；null = 全部完成、顯示完成畫面
+  var slideIndex = 0;       // 簡報目前頁
+  var keyHandler = null;    // 鍵盤翻頁監聽（避免重複疊加）
+  var confettiShown = false;// 彩帶只放一次
+  var SLIDE_V = "?v=5";     // 簡報圖片版本；重新輸出投影片後把數字加 1，強制瀏覽器抓新圖
+
+  // AI 生成教材提示（步驟設 ai:true 時顯示；要改文字改這裡即可）
+  var AI_NOTICE =
+    '<div class="ai-notice">' +
+      '<span class="ai-badge">🤖 AI 生成</span>' +
+      '<span>部份教材由 NotebookLM AI 協助生成，內容如有錯字敬請見諒；' +
+      '學習時請將重點放在教學內容與觀念理解上。</span>' +
+    '</div>';
+
+  document.getElementById("courseTitle").textContent = course.title;
+  document.title = course.title + " ・ 翰林業務教育訓練平台";
+
+  var stepsEl = document.getElementById("steps");
+  var trackerEl = document.getElementById("stepsTracker");
+
+  var typeMeta = {
+    slides: { icon: "📑", label: "簡報" },
+    video:  { icon: "🎬", label: "影片" },
+    pdf:    { icon: "📖", label: "手冊" },
+    quiz:   { icon: "📝", label: "測驗" }
+  };
+
+  function resetActiveToCurrent() {
+    var done = getDoneCount(courseId);
+    activeIndex = done < total ? done : null;
+  }
+
+  function render() {
+    // 清掉上一輪的鍵盤監聽
+    if (keyHandler) { document.removeEventListener("keydown", keyHandler); keyHandler = null; }
+
+    var done = getDoneCount(courseId);
+    trackerEl.innerHTML = "";
+    stepsEl.innerHTML = "";
+
+    // ---- 上方進度追蹤列（已完成的節點可點擊回看）----
+    course.steps.forEach(function (step, i) {
+      var isDone = i < done;
+      var isCurrent = i === done;
+      var node = document.createElement("div");
+      node.className = "tracker-node " +
+        (isDone ? "node-done" : isCurrent ? "node-current" : "node-locked") +
+        (i === activeIndex ? " node-active" : "");
+      node.innerHTML =
+        '<span class="node-dot">' + (isDone ? "✓" : (i + 1)) + '</span>' +
+        '<span class="node-label">' + step.title + '</span>';
+      if (isDone) {
+        node.title = "回看「" + step.title + "」";
+        node.style.cursor = "pointer";
+        node.addEventListener("click", function () { activeIndex = i; slideIndex = 0; render(); });
+      }
+      trackerEl.appendChild(node);
+      if (i < total - 1) {
+        var line = document.createElement("div");
+        line.className = "tracker-line " + (isDone ? "line-done" : "");
+        trackerEl.appendChild(line);
+      }
+    });
+
+    // ---- 只顯示目前這一步 ----
+    if (activeIndex !== null) {
+      var step = course.steps[activeIndex];
+      var meta = typeMeta[step.type] || { icon: "•", label: "" };
+      var isDone = activeIndex < done;
+      stepsEl.appendChild(buildCard(step, activeIndex, isDone, meta));
+    }
+
+    // ---- 完成畫面：只有全部完成且沒在回看時才出現 ----
+    var banner = document.getElementById("finishBanner");
+    if (done >= total && total > 0 && activeIndex === null) {
+      document.getElementById("finishName").textContent = course.title;
+      banner.hidden = false;
+      if (!confettiShown) { confettiShown = true; launchConfetti(); }
+    } else {
+      banner.hidden = true;
+      confettiShown = false;
+    }
+  }
+
+  /* 慶祝彩帶 */
+  function launchConfetti() {
+    var host = document.getElementById("confetti");
+    if (!host) return;
+    host.innerHTML = "";
+    var colors = ["#f59e0b", "#2f6fed", "#16a34a", "#ef4444", "#a855f7", "#ffd54a"];
+    for (var i = 0; i < 40; i++) {
+      var p = document.createElement("i");
+      var left = (i * 2.5) % 100;
+      var delay = (i % 10) * 0.12;
+      var dur = 1.8 + (i % 5) * 0.35;
+      p.className = "confetti-piece";
+      p.style.left = left + "%";
+      p.style.background = colors[i % colors.length];
+      p.style.animationDelay = delay + "s";
+      p.style.animationDuration = dur + "s";
+      host.appendChild(p);
+    }
+  }
+
+  function buildCard(step, i, isDone, meta) {
+    var card = document.createElement("section");
+    card.className = "step-card step-current step-enter";
+    // 步驟 BAR 已標示在哪一步，這裡不再重複標題列，直接放內容
+    card.innerHTML = '<div class="step-body">' + renderStepContent(step, i, isDone) + '</div>';
+    setTimeout(function () { wireStepContent(card, step, i, isDone); }, 0);
+    return card;
+  }
+
+  function renderStepContent(step, i, isDone) {
+    if (step.type === "slides") {
+      return renderSlides(step) + doneButton(i, isDone, "我已看完簡報，前往下一步");
+    }
+    if (step.type === "video") {
+      return (
+        '<div class="viewer video-viewer">' +
+          '<video controls preload="metadata" controlsList="nodownload">' +
+            '<source src="' + step.file + '" type="video/mp4" />' +
+            '您的瀏覽器不支援影片播放。' +
+          '</video>' +
+        '</div>' +
+        doneButton(i, isDone, "我已看完影片，前往下一步")
+      );
+    }
+    if (step.type === "pdf") {
+      return (
+        '<div class="viewer pdf-viewer">' +
+          '<iframe src="' + step.file + SLIDE_V + '#view=FitH" title="手冊"></iframe>' +
+        '</div>' +
+        '<div class="viewer-hint">看不到內容或想放大？' +
+          '<a href="' + step.file + SLIDE_V + '" target="_blank" rel="noopener">用新分頁開啟 PDF</a></div>' +
+        doneButton(i, isDone, "我已看完手冊，前往下一步")
+      );
+    }
+    if (step.type === "quiz") {
+      return (
+        '<div class="quiz-box">' +
+          '<p>請點下方按鈕開啟測驗（Google 表單，會開新分頁）。<mark class="quiz-hl">完成作答後回到本頁按「我已完成測驗」。</mark></p>' +
+          '<a class="btn btn-quiz" href="' + step.url + '" target="_blank" rel="noopener">📝 開啟測驗表單</a>' +
+        '</div>' +
+        doneButton(i, isDone, "我已完成測驗")
+      );
+    }
+    return "";
+  }
+
+  /* 簡報翻頁器（含全螢幕） */
+  function renderSlides(step) {
+    var n = step.slideCount;
+    if (slideIndex >= n) slideIndex = 0;
+    var pad = function (x) { return (x < 10 ? "0" : "") + x; };
+    var firstSrc = step.slidesDir + pad(slideIndex + 1) + ".png" + SLIDE_V;
+    return (
+      '<div class="slides">' +
+        '<div class="slide-stage">' +
+          '<button class="slide-fs" data-fs aria-label="全螢幕" title="全螢幕">⛶</button>' +
+          '<span class="slide-badge"><b class="cur">' + (slideIndex + 1) + '</b> / ' + n + '</span>' +
+          '<button class="slide-nav prev" data-nav="prev" aria-label="上一頁">‹</button>' +
+          '<img class="slide-img" src="' + firstSrc + '" alt="投影片" />' +
+          '<button class="slide-nav next" data-nav="next" aria-label="下一頁">›</button>' +
+        '</div>' +
+        '<div class="slide-bar">' +
+          '<button class="btn btn-ghost" data-nav="prev">‹ 上一頁</button>' +
+          '<span class="slide-count"><b class="cur">' + (slideIndex + 1) + '</b> / ' + n + '</span>' +
+          '<button class="btn btn-ghost" data-nav="next">下一頁 ›</button>' +
+          '<button class="btn btn-ghost" data-fs title="全螢幕">⛶ 全螢幕</button>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function doneButton(i, isDone, labelTodo) {
+    return (
+      '<div class="step-actions">' +
+        '<button class="btn btn-primary done-btn" data-step="' + i + '">' +
+          (isDone ? "✓ 前往下一步" : labelTodo) +
+        '</button>' +
+      '</div>'
+    );
+  }
+
+  function wireStepContent(card, step, i, isDone) {
+    // 完成 / 前往下一步
+    var doneBtn = card.querySelector(".done-btn");
+    if (doneBtn) {
+      doneBtn.addEventListener("click", async function () {
+        doneBtn.disabled = true;
+        await markStepDone(courseId, i);
+        resetActiveToCurrent();
+        slideIndex = 0;
+        render();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+
+    if (step.type !== "slides") return;
+
+    // 翻頁
+    var img = card.querySelector(".slide-img");
+    var curEls = card.querySelectorAll(".cur");
+    var n = step.slideCount;
+    var pad = function (x) { return (x < 10 ? "0" : "") + x; };
+    function show(idx) {
+      slideIndex = (idx + n) % n; // 循環
+      img.src = step.slidesDir + pad(slideIndex + 1) + ".png" + SLIDE_V;
+      curEls.forEach(function (el) { el.textContent = slideIndex + 1; });
+    }
+    card.querySelectorAll("[data-nav]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        show(b.getAttribute("data-nav") === "next" ? slideIndex + 1 : slideIndex - 1);
+      });
+    });
+
+    // 全螢幕
+    var stage = card.querySelector(".slide-stage");
+    card.querySelectorAll("[data-fs]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (!document.fullscreenElement) {
+          (stage.requestFullscreen || stage.webkitRequestFullscreen || function () {}).call(stage);
+        } else {
+          (document.exitFullscreen || document.webkitExitFullscreen || function () {}).call(document);
+        }
+      });
+    });
+
+    // 鍵盤左右翻頁（全螢幕內也適用）
+    keyHandler = function (e) {
+      if (e.key === "ArrowRight") show(slideIndex + 1);
+      else if (e.key === "ArrowLeft") show(slideIndex - 1);
+    };
+    document.addEventListener("keydown", keyHandler);
+  }
+
+  var reviewBtn = document.getElementById("reviewBtn");
+  if (reviewBtn) {
+    reviewBtn.addEventListener("click", function () {
+      activeIndex = 0; slideIndex = 0; render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
+  document.getElementById("resetBtn").addEventListener("click", async function () {
+    if (confirm("確定要重設「" + course.title + "」的學習進度嗎？")) {
+      await resetCourse(courseId);
+      resetActiveToCurrent();
+      slideIndex = 0;
+      render();
+    }
+  });
+
+  resetActiveToCurrent();
+  render();
+}
