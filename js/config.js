@@ -7,7 +7,7 @@
    RLS 規則把關（使用者只能寫自己的 email、且必須是公司網域）。
    ========================================================= */
 window.APP_CONFIG = {
-  SUPABASE_URL: "https://YOUR-PROJECT.supabase.co",   // ← 換成你的 Project URL
-  SUPABASE_ANON_KEY: "YOUR-ANON-PUBLIC-KEY",          // ← 換成你的 anon public key
-  ALLOWED_DOMAIN: "hanlin.com.tw"                       // 只允許這個網域的 Google 帳號登入
+  SUPABASE_URL: "https://wbmteuorxwotizmyqist.supabase.co",     // Project URL（不含 /rest/v1/）
+  SUPABASE_ANON_KEY: "sb_publishable_5pqwFLfoYRJZi7QFdbdh1A_Qk1JARN3",  // Publishable key（可公開）
+  ALLOWED_DOMAIN: "hanlin.com.tw"                                // 只允許這個網域的 Google 帳號登入
 };
