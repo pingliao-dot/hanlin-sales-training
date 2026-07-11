@@ -35,7 +35,7 @@ function fmtTime(iso) {
   var d = new Date(iso);
   var p = function (x) { return (x < 10 ? "0" : "") + x; };
   return d.getFullYear() + "/" + p(d.getMonth() + 1) + "/" + p(d.getDate()) +
-    " " + p(d.getHours()) + ":" + p(d.getMinutes());
+    " " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
 }
 
 function renderAdmin(allRows) {
