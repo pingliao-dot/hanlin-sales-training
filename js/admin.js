@@ -19,7 +19,7 @@ async function initAdmin() {
   // 2) 撈全部紀錄
   var res = await window.sb
     .from("progress_log")
-    .select("usermail, project, step, completed_at")
+    .select("usermail, username, project, step, completed_at")
     .order("completed_at", { ascending: false });
   if (res.error) {
     app.innerHTML = '<div class="admin-denied">讀取失敗：' + res.error.message + '</div>';
@@ -56,7 +56,7 @@ function renderAdmin(allRows) {
       '</div>' +
     '</div>' +
     '<div class="admin-table-wrap"><table class="admin-table">' +
-      '<thead><tr><th>使用者 email</th><th>專案</th><th>步驟</th><th>完成時間</th></tr></thead>' +
+      '<thead><tr><th>姓名</th><th>使用者 email</th><th>專案</th><th>步驟</th><th>完成時間</th></tr></thead>' +
       '<tbody id="adminRows"></tbody>' +
     '</table></div>';
 
@@ -65,7 +65,7 @@ function renderAdmin(allRows) {
   document.getElementById("adminSearch").addEventListener("input", function (e) {
     var q = e.target.value.trim().toLowerCase();
     var filtered = !q ? window.__ADMIN_ROWS : window.__ADMIN_ROWS.filter(function (r) {
-      return (r.usermail + " " + r.project + " " + r.step).toLowerCase().indexOf(q) !== -1;
+      return ((r.username || "") + " " + r.usermail + " " + r.project + " " + r.step).toLowerCase().indexOf(q) !== -1;
     });
     paintRows(filtered);
   });
@@ -83,7 +83,7 @@ function paintRows(rows) {
   rows.forEach(function (r) {
     var tr = document.createElement("tr");
     // 用 textContent 塞值，避免任何注入
-    [r.usermail, r.project, r.step, fmtTime(r.completed_at)].forEach(function (v) {
+    [r.username || "", r.usermail, r.project, r.step, fmtTime(r.completed_at)].forEach(function (v) {
       var td = document.createElement("td");
       td.textContent = v || "";
       tr.appendChild(td);
@@ -98,9 +98,9 @@ function exportCsv() {
     s = (s == null ? "" : String(s));
     return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   };
-  var lines = ["usermail,專案,步驟,完成時間"];
+  var lines = ["姓名,usermail,專案,步驟,完成時間"];
   rows.forEach(function (r) {
-    lines.push([r.usermail, r.project, r.step, fmtTime(r.completed_at)].map(cell).join(","));
+    lines.push([r.username || "", r.usermail, r.project, r.step, fmtTime(r.completed_at)].map(cell).join(","));
   });
   var blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
   var url = URL.createObjectURL(blob);

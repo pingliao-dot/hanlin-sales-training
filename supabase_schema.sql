@@ -6,6 +6,7 @@
 create table if not exists public.progress_log (
   id           bigint generated always as identity primary key,
   usermail     text not null,          -- 使用者 email
+  username     text,                   -- 使用者姓名（登入時由 Google 帶入）
   project      text not null,          -- 專案別（例：命題大師）
   step         text not null,          -- 任務步驟（例：命題大師介紹）
   completed_at timestamptz(0) not null default now(),  -- 完成時間（只記到秒）

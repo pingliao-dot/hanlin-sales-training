@@ -55,6 +55,7 @@ var Progress = (function () {
     // 不從前端送 completed_at，交給資料庫的 default now() 產生，時間無法被竄改
     var row = {
       usermail: window.CURRENT_USER,
+      username: window.CURRENT_USER_NAME || null,
       project: c.title,
       step: step.title
     };

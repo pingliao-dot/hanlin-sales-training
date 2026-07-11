@@ -35,6 +35,8 @@
     }
 
     window.CURRENT_USER = email;
+    var meta = session.user.user_metadata || {};
+    window.CURRENT_USER_NAME = meta.full_name || meta.name || "";  // Google 帶入的姓名
     renderUserChip(email);
     removeOverlay();
 
