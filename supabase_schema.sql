@@ -15,6 +15,9 @@ create table if not exists public.progress_log (
 -- 開啟資料列權限控管（RLS）
 alter table public.progress_log enable row level security;
 
+-- 授予已登入角色操作此表的權限（用 SQL 建表時必須手動加，否則會 permission denied）
+grant select, insert, update, delete on public.progress_log to authenticated;
+
 -- =========================================================
 -- 管理者白名單（只有名單內的人能看後台全部資料）
 -- =========================================================
