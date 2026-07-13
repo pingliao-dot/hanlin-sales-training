@@ -74,9 +74,9 @@ a { color: var(--brand); text-decoration: none; }
 .hero-kicker::before { content: ""; width: 26px; height: 3px; background: var(--gold); border-radius: 2px; }
 .hero h1 { font-size: 42px; margin: 0 0 16px; line-height: 1.22; font-weight: 900; letter-spacing: 1px; color: var(--ink); }
 .hero h1 b, .hero h1 .accent { color: var(--brand); }
-.hero-sub { font-size: 16px; max-width: 640px; margin: 0; color: #3a3f4c; font-weight: 500; }
+.hero-sub { font-size: 16px; max-width: 920px; margin: 0; color: #3a3f4c; font-weight: 500; }
 .hero-tip {
-  margin-top: 22px; max-width: 660px;
+  margin-top: 22px; max-width: 920px;
   background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--gold);
   border-radius: 12px; padding: 16px 20px; box-shadow: var(--shadow);
 }
