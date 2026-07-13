@@ -70,7 +70,7 @@ const COURSES = [
         desc: "行動大師操作步驟",
         ai: true,
         slidesDir: "assets/行動大師/slides-guide/",
-        slideCount: 15,
+        slideCount: 20,
         pdf: "assets/行動大師/行動大師-操作指引.pdf"
       },
       {
