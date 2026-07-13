@@ -245,6 +245,9 @@ a { color: var(--brand); text-decoration: none; }
 .btn-gold:hover { filter: brightness(1.04); }
 .btn-ghost { background: #eef1fb; color: var(--ink); }
 .btn-ghost:hover { background: #e2e7f7; }
+.btn-line { background: #06c755; color: #fff; font-size: 16px; padding: 13px 28px; box-shadow: 0 8px 20px rgba(6, 199, 85, .28); }
+.btn-line:hover { filter: brightness(1.05); }
+.step-cta { display: flex; justify-content: center; margin-top: 14px; }
 .btn-text { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; text-decoration: underline; font-family: inherit; }
 .step-hint { margin-right: auto; color: var(--muted); font-size: 14px; font-weight: 700; }
 

@@ -193,6 +193,7 @@ const COURSES = [
         desc: "加入小幫手 LINE@",
         slidesDir: "assets/小幫手/slides/",
         slideCount: 2,
+        action: { label: "➕ 點我直接加入 LINE@", url: "https://line.me/R/ti/p/@jxb9444o" },
         doneLabel: "我已加入 LINE@，完成"
       }
     ]

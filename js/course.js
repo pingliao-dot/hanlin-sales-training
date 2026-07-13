@@ -132,7 +132,7 @@ function initCourse() {
 
   function renderStepContent(step, i, isDone) {
     if (step.type === "slides") {
-      return renderSlides(step) + doneButton(i, isDone, step.doneLabel || "我已看完簡報，前往下一步");
+      return renderSlides(step) + actionButton(step) + doneButton(i, isDone, step.doneLabel || "我已看完簡報，前往下一步");
     }
     if (step.type === "video") {
       return (
@@ -190,6 +190,12 @@ function initCourse() {
         '</div>' +
       '</div>'
     );
+  }
+
+  function actionButton(step) {
+    if (!step.action || !step.action.url) return "";
+    return '<div class="step-cta"><a class="btn btn-line" href="' + step.action.url +
+      '" target="_blank" rel="noopener">' + step.action.label + '</a></div>';
   }
 
   function doneButton(i, isDone, labelTodo) {
