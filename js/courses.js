@@ -175,6 +175,27 @@ const COURSES = [
         url: "https://forms.gle/RgPdu1wXGFJzpmqK7"
       }
     ]
+  },
+
+  {
+    id: "line-helper",
+    title: "小幫手",
+    subtitle: "翰林小幫手 LINE@",
+    desc: "加入翰林小幫手 LINE@，隨時取得業務支援。",
+    badge: "國小業務",
+    icon: "💬",
+    accent: "#06c755",
+    available: true,
+    steps: [
+      {
+        type: "slides",
+        title: "看文件",
+        desc: "加入小幫手 LINE@",
+        slidesDir: "assets/小幫手/slides/",
+        slideCount: 2,
+        doneLabel: "我已加入 LINE@，完成"
+      }
+    ]
   }
 ];
 

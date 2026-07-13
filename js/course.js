@@ -132,7 +132,7 @@ function initCourse() {
 
   function renderStepContent(step, i, isDone) {
     if (step.type === "slides") {
-      return renderSlides(step) + doneButton(i, isDone, "我已看完簡報，前往下一步");
+      return renderSlides(step) + doneButton(i, isDone, step.doneLabel || "我已看完簡報，前往下一步");
     }
     if (step.type === "video") {
       return (
@@ -142,7 +142,7 @@ function initCourse() {
             '您的瀏覽器不支援影片播放。' +
           '</video>' +
         '</div>' +
-        doneButton(i, isDone, "我已看完影片，前往下一步")
+        doneButton(i, isDone, step.doneLabel || "我已看完影片，前往下一步")
       );
     }
     if (step.type === "pdf") {
@@ -152,7 +152,7 @@ function initCourse() {
         '</div>' +
         '<div class="viewer-hint">看不到內容或想放大？' +
           '<a href="' + step.file + SLIDE_V + '" target="_blank" rel="noopener">用新分頁開啟 PDF</a></div>' +
-        doneButton(i, isDone, "我已看完手冊，前往下一步")
+        doneButton(i, isDone, step.doneLabel || "我已看完手冊，前往下一步")
       );
     }
     if (step.type === "quiz") {
@@ -161,7 +161,7 @@ function initCourse() {
           '<p>請點下方按鈕開啟測驗（Google 表單，會開新分頁）。<mark class="quiz-hl">完成作答後回到本頁按「我已完成測驗」。</mark></p>' +
           '<a class="btn btn-quiz" href="' + step.url + '" target="_blank" rel="noopener">📝 開啟測驗表單</a>' +
         '</div>' +
-        doneButton(i, isDone, "我已完成測驗")
+        doneButton(i, isDone, step.doneLabel || "我已完成測驗")
       );
     }
     return "";
