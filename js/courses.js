@@ -178,6 +178,41 @@ const COURSES = [
     available: true,
     steps: [
       {
+        type: "intro",
+        title: "產品簡介",
+        desc: "先認識電子書",
+        doneLabel: "我了解了，開始上課",
+        pages: [
+          '<h2 class="intro-title">「翰林電子書」是什麼？</h2>' +
+          '<p class="intro-lead">它是翰林將<b>紙本教材數位化</b>後，提供老師在電腦、平板或觸屏上使用的' +
+            '<b>互動式數位教材</b>。</p>' +
+          '<div class="intro-cards">' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">💻</div>' +
+              '<h3>電腦、平板、觸屏都能用</h3>' +
+              '<p>把紙本教材數位化，讓老師在各種裝置上都能開啟、教學。</p>' +
+            '</div>' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">🧰</div>' +
+              '<h3>它不只是一本 PDF</h3>' +
+              '<p><mark class="hl">而是結合教學工具、互動功能與各種資源的完整學習環境。</mark></p>' +
+            '</div>' +
+          '</div>',
+
+          '<h2 class="intro-title">這堂課，你將學到：</h2>' +
+          '<ul class="intro-list">' +
+            '<li>電子書分為<b>哪幾種版本</b></li>' +
+            '<li>工具列上有哪些<b>基本功能</b></li>' +
+            '<li>如何<b>自訂工具列</b></li>' +
+            '<li><b>數學科</b>避免畫面變形如何調整</li>' +
+            '<li>如何<b>快速切換畫筆與滑鼠</b></li>' +
+            '<li>如何<b>使用畫筆時還能點擊到按鈕</b></li>' +
+            '<li>如何<b>儲存班級紀錄</b></li>' +
+            '<li>如何<b>同步紀錄至雲端</b></li>' +
+          '</ul>'
+        ]
+      },
+      {
         type: "slides",
         title: "電子書介紹",
         desc: "認識電子書",

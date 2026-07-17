@@ -336,15 +336,6 @@ function initCourse() {
     });
   }
 
-  document.getElementById("resetBtn").addEventListener("click", async function () {
-    if (confirm("確定要重設「" + course.title + "」的學習進度嗎？")) {
-      await resetCourse(courseId);
-      resetActiveToCurrent();
-      slideIndex = 0;
-      render();
-    }
-  });
-
   resetActiveToCurrent();
   render();
 }
