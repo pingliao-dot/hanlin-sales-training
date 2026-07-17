@@ -147,11 +147,15 @@ function initCourse() {
               '</div>'
             : '') +
         '</div>' +
-        doneButton(i, isDone, step.doneLabel || "我已了解，前往下一步")
+        doneButton(i, isDone, step.doneLabel || "我已了解，前往下一步",
+          (!isDone && n > 1 && slideIndex < n - 1) ? "請翻到最後一頁，才能前往下一步" : null)
       );
     }
     if (step.type === "slides") {
-      return renderSlides(step) + actionButton(step) + doneButton(i, isDone, step.doneLabel || "我已看完簡報，前往下一步");
+      var sn = step.slideCount;
+      return renderSlides(step) + actionButton(step) +
+        doneButton(i, isDone, step.doneLabel || "我已看完簡報，前往下一步",
+          (!isDone && sn > 1 && slideIndex < sn - 1) ? "請翻到最後一頁，才能前往下一步" : null);
     }
     if (step.type === "video") {
       return (
@@ -161,7 +165,8 @@ function initCourse() {
             '您的瀏覽器不支援影片播放。' +
           '</video>' +
         '</div>' +
-        doneButton(i, isDone, step.doneLabel || "我已看完影片，前往下一步")
+        doneButton(i, isDone, step.doneLabel || "我已看完影片，前往下一步",
+          isDone ? null : "🔒 看完影片後即可前往下一步")
       );
     }
     if (step.type === "pdf") {
@@ -217,10 +222,13 @@ function initCourse() {
       '" target="_blank" rel="noopener">' + step.action.label + '</a></div>';
   }
 
-  function doneButton(i, isDone, labelTodo) {
+  /* lockText 有值 = 尚未解鎖：顯示灰字提示、隱藏完成鈕 */
+  function doneButton(i, isDone, labelTodo, lockText) {
+    var locked = !!lockText;
     return (
       '<div class="step-actions">' +
-        '<button class="btn btn-primary done-btn" data-step="' + i + '">' +
+        '<span class="step-lock"' + (locked ? '' : ' hidden') + '>' + (lockText || "") + '</span>' +
+        '<button class="btn btn-primary done-btn" data-step="' + i + '"' + (locked ? ' hidden' : '') + '>' +
           (isDone ? "✓ 前往下一步" : labelTodo) +
         '</button>' +
       '</div>'
@@ -239,6 +247,25 @@ function initCourse() {
         render();
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
+    }
+
+    // 影片：播到結尾才解鎖完成鈕（可快轉）
+    if (step.type === "video") {
+      if (isDone) return;
+      var vid = card.querySelector("video");
+      var vLock = card.querySelector(".step-lock");
+      var vBtn = card.querySelector(".done-btn");
+      if (!vid || !vBtn) return;
+      var unlockVideo = function () {
+        if (vLock) vLock.hidden = true;
+        vBtn.hidden = false;
+      };
+      vid.addEventListener("ended", unlockVideo);
+      // 保險：快到結尾就解鎖（避免 ended 沒觸發卡住）
+      vid.addEventListener("timeupdate", function () {
+        if (vid.duration && vid.currentTime >= vid.duration - 1) unlockVideo();
+      });
+      return;
     }
 
     // 產品簡介：翻頁（重新渲染）
@@ -261,10 +288,16 @@ function initCourse() {
     var curEls = card.querySelectorAll(".cur");
     var n = step.slideCount;
     var pad = function (x) { return (x < 10 ? "0" : "") + x; };
+    var lockEl = card.querySelector(".step-lock");
+    var dBtn = card.querySelector(".done-btn");
     function show(idx) {
       slideIndex = (idx + n) % n; // 循環
       img.src = step.slidesDir + pad(slideIndex + 1) + ".png" + SLIDE_V;
       curEls.forEach(function (el) { el.textContent = slideIndex + 1; });
+      // 翻到最後一頁才解鎖完成鈕
+      var unlocked = isDone || n <= 1 || slideIndex === n - 1;
+      if (lockEl) lockEl.hidden = unlocked;
+      if (dBtn) dBtn.hidden = !unlocked;
     }
     card.querySelectorAll("[data-nav]").forEach(function (b) {
       b.addEventListener("click", function () {

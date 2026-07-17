@@ -276,6 +276,10 @@ a { color: var(--brand); text-decoration: none; }
 .step-cta { display: flex; justify-content: center; margin-top: 14px; }
 .btn-text { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; text-decoration: underline; font-family: inherit; }
 .step-hint { margin-right: auto; color: var(--muted); font-size: 14px; font-weight: 700; }
+/* 尚未解鎖時的灰字提示 */
+.step-lock { margin-right: auto; color: var(--muted); font-size: 14px; font-weight: 700; }
+/* 讓 hidden 屬性一定生效（.btn 的 display 會蓋掉預設的 hidden） */
+[hidden] { display: none !important; }
 
 /* 步驟卡登場動畫 */
 .step-enter { animation: cardIn .32s cubic-bezier(.2,.7,.3,1) both; }
