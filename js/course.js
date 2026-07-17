@@ -19,6 +19,7 @@ function initCourse() {
   var total = course.steps.length;
   var activeIndex = null;   // 目前顯示的步驟；null = 全部完成、顯示完成畫面
   var slideIndex = 0;       // 簡報目前頁
+  var seenLast = false;     // 這一步「曾經翻到過最後一頁」→ 之後翻回去也保持解鎖
   var keyHandler = null;    // 鍵盤翻頁監聽（避免重複疊加）
   var confettiShown = false;// 彩帶只放一次
   var SLIDE_V = "?v=6";     // 簡報圖片版本；重新輸出投影片後把數字加 1，強制瀏覽器抓新圖
@@ -48,6 +49,7 @@ function initCourse() {
   function resetActiveToCurrent() {
     var done = getDoneCount(courseId);
     activeIndex = done < total ? done : null;
+    seenLast = false;   // 換一步，重新算「有沒有翻到最後一頁」
   }
 
   function render() {
@@ -72,7 +74,7 @@ function initCourse() {
       if (isDone) {
         node.title = "回看「" + step.title + "」";
         node.style.cursor = "pointer";
-        node.addEventListener("click", function () { activeIndex = i; slideIndex = 0; render(); });
+        node.addEventListener("click", function () { activeIndex = i; slideIndex = 0; seenLast = false; render(); });
       }
       trackerEl.appendChild(node);
       if (i < total - 1) {
@@ -136,6 +138,7 @@ function initCourse() {
       var pages = step.pages || [];
       var n = pages.length;
       if (slideIndex >= n) slideIndex = 0;
+      if (n > 1 && slideIndex === n - 1) seenLast = true;
       return (
         '<div class="slides">' +
           '<div class="intro-stage">' + (pages[slideIndex] || "") + '</div>' +
@@ -148,14 +151,15 @@ function initCourse() {
             : '') +
         '</div>' +
         doneButton(i, isDone, step.doneLabel || "我已了解，前往下一步",
-          (!isDone && n > 1 && slideIndex < n - 1) ? "請翻到最後一頁，才能前往下一步" : null)
+          (!isDone && n > 1 && !seenLast) ? "請翻到最後一頁，才能前往下一步" : null)
       );
     }
     if (step.type === "slides") {
       var sn = step.slideCount;
+      if (sn > 1 && slideIndex === sn - 1) seenLast = true;
       return renderSlides(step) + actionButton(step) +
         doneButton(i, isDone, step.doneLabel || "我已看完簡報，前往下一步",
-          (!isDone && sn > 1 && slideIndex < sn - 1) ? "請翻到最後一頁，才能前往下一步" : null);
+          (!isDone && sn > 1 && !seenLast) ? "請翻到最後一頁，才能前往下一步" : null);
     }
     if (step.type === "video") {
       return (
@@ -298,8 +302,9 @@ function initCourse() {
       slideIndex = (idx + n) % n; // 循環
       img.src = step.slidesDir + pad(slideIndex + 1) + ".png" + SLIDE_V;
       curEls.forEach(function (el) { el.textContent = slideIndex + 1; });
-      // 翻到最後一頁才解鎖完成鈕
-      var unlocked = isDone || n <= 1 || slideIndex === n - 1;
+      // 曾經翻到最後一頁就永久解鎖（翻回前面也不會再鎖上）
+      if (slideIndex === n - 1) seenLast = true;
+      var unlocked = isDone || n <= 1 || seenLast;
       setLocked(dBtn, !unlocked, "請翻到最後一頁，才能前往下一步");
     }
     card.querySelectorAll("[data-nav]").forEach(function (b) {
@@ -331,7 +336,7 @@ function initCourse() {
   var reviewBtn = document.getElementById("reviewBtn");
   if (reviewBtn) {
     reviewBtn.addEventListener("click", function () {
-      activeIndex = 0; slideIndex = 0; render();
+      activeIndex = 0; slideIndex = 0; seenLast = false; render();
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
