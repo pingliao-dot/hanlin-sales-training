@@ -49,8 +49,7 @@ const COURSES = [
             '</div>' +
           '</div>',
 
-          '<h2 class="intro-title">這堂課，你會學到</h2>' +
-          '<p class="intro-lead">完成接下來的簡報、影片與測驗後，你將能夠：</p>' +
+          '<h2 class="intro-title">這堂課，你將學到：</h2>' +
           '<ul class="intro-list">' +
             '<li>登入方式基本分為<b>哪幾種</b></li>' +
             '<li>遇到<b>全新、還沒有帳號</b>的老師，建議他申請哪一種</li>' +
@@ -122,12 +121,11 @@ const COURSES = [
             '</div>' +
           '</div>',
 
-          '<h2 class="intro-title">這堂課，你會學到</h2>' +
-          '<p class="intro-lead">完成接下來的簡報、影片與測驗後，你將能夠：</p>' +
+          '<h2 class="intro-title">這堂課，你將學到：</h2>' +
           '<ul class="intro-list">' +
-            '<li>行動大師分為<b>哪幾種版本</b></li>' +
-            '<li>國小有哪些<b>重要資源</b></li>' +
-            '<li>老師最需要的<b>題目及互動遊戲</b>在哪裡</li>' +
+            '<li>了解行動大師分為<b>哪幾種版本</b></li>' +
+            '<li>了解國小有哪些<b>重要資源</b></li>' +
+            '<li>了解老師最需要的<b>題目及互動遊戲</b>在哪裡</li>' +
             '<li>如何獲得領域<b>最新的消息</b></li>' +
             '<li>我們要<b>如何進行下載</b></li>' +
             '<li>發生<b>下載異常</b>時怎麼辦</li>' +
