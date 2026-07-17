@@ -220,6 +220,30 @@ function initCourse() {
     );
   }
 
+  /* 全螢幕：優先用原生全螢幕；不支援時（例如 iPhone Safari）改用 CSS 假全螢幕 */
+  function toggleFullscreen(el) {
+    if (!el) return;
+    var req = el.requestFullscreen || el.webkitRequestFullscreen;
+    var exit = document.exitFullscreen || document.webkitExitFullscreen;
+    var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+
+    if (!req) {                       // 不支援原生 → CSS 假全螢幕
+      el.classList.toggle("fs-fallback");
+      return;
+    }
+    if (fsEl) {
+      if (exit) exit.call(document);
+      return;
+    }
+    try {
+      var p = req.call(el);
+      // 有些瀏覽器會回傳被拒絕的 Promise → 一樣退回假全螢幕
+      if (p && p.catch) p.catch(function () { el.classList.add("fs-fallback"); });
+    } catch (e) {
+      el.classList.add("fs-fallback");
+    }
+  }
+
   function actionButton(step) {
     if (!step.action || !step.action.url) return "";
     return '<div class="step-cta"><a class="btn btn-line" href="' + step.action.url +
@@ -316,13 +340,7 @@ function initCourse() {
     // 全螢幕
     var stage = card.querySelector(".slide-stage");
     card.querySelectorAll("[data-fs]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        if (!document.fullscreenElement) {
-          (stage.requestFullscreen || stage.webkitRequestFullscreen || function () {}).call(stage);
-        } else {
-          (document.exitFullscreen || document.webkitExitFullscreen || function () {}).call(document);
-        }
-      });
+      b.addEventListener("click", function () { toggleFullscreen(stage); });
     });
 
     // 鍵盤左右翻頁（全螢幕內也適用）
