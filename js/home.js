@@ -16,7 +16,6 @@ function initHome() {
 
     var statusLabel = allDone ? "已結案" : "進行中";
     var statusClass = allDone ? "status-done" : "status-progress";
-    var num = (n < 10 ? "0" : "") + n;
 
     var card = document.createElement("a");
     card.className = "block-card";
@@ -24,7 +23,7 @@ function initHome() {
     card.style.setProperty("--accent", course.accent || "#2748d6");
 
     card.innerHTML =
-      '<span class="block-num">' + num + '</span>' +
+      '<span class="block-num">第<b>' + n + '</b>堂課</span>' +
       '<h3 class="block-title">' + course.title + '</h3>' +
       '<span class="block-status ' + statusClass + '">' + statusLabel + '</span>';
 

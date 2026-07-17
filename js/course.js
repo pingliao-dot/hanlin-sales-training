@@ -32,7 +32,7 @@ function initCourse() {
     '</div>';
 
   document.getElementById("courseTitle").textContent = course.title;
-  document.title = course.title + " ・ 翰林業務教育訓練平台";
+  document.title = course.title + " ・ 翰林國小業務新人教育訓練平台";
 
   var stepsEl = document.getElementById("steps");
   var trackerEl = document.getElementById("stepsTracker");

@@ -51,7 +51,7 @@
     showOverlay(
       '<div class="login-card">' +
         '<div class="login-mark">翰</div>' +
-        '<h2>業務教育訓練平台</h2>' +
+        '<h2>國小業務新人教育訓練平台</h2>' +
         '<p class="login-sub">請用公司 Google 帳號（@' + cfg.ALLOWED_DOMAIN + '）登入</p>' +
         (message ? '<p class="login-error">' + message + '</p>' : '') +
         '<button id="googleLoginBtn" class="btn-google">' +
