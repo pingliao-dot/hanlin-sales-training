@@ -258,6 +258,55 @@ const COURSES = [
     available: true,
     steps: [
       {
+        type: "intro",
+        title: "產品簡介",
+        desc: "先認識命題大師與雲端速測",
+        doneLabel: "我了解了，開始上課",
+        pages: [
+          '<h2 class="intro-title">「翰林命題大師」是什麼？</h2>' +
+          '<p class="intro-lead">它是一個<b>「線上出題系統」</b>，' +
+            '<mark class="hl">解決老師日常出題與排版的繁瑣流程</mark>。</p>' +
+          '<div class="intro-cards">' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">🗂</div>' +
+              '<h3>完整的學科題庫</h3>' +
+              '<p>擁有完整的學科題庫，能自動產出標準格式的紙本考卷。</p>' +
+            '</div>' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">📄</div>' +
+              '<h3>主要用途：紙筆測驗</h3>' +
+              '<p>老師挑選題目後，可直接下載排版好的 Word，用於傳統的紙筆測驗。</p>' +
+            '</div>' +
+          '</div>',
+
+          '<h2 class="intro-title">「翰林雲端速測」是什麼？</h2>' +
+          '<p class="intro-lead">它是一個<b>「免紙筆的線上測驗服務」</b>，為命題大師的<b>附加功能</b>。' +
+            '老師透過命題大師挑選題目後，系統會自動將測驗轉化為線上考試，' +
+            '並在學生送出後<mark class="hl">自動閱卷</mark>。</p>' +
+          '<p class="intro-sub">適用情境</p>' +
+          '<div class="intro-cards">' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">📱</div>' +
+              '<h3>課堂互動教學</h3>' +
+              '<p>配合「生生用平板」政策，讓課堂互動更即時。</p>' +
+            '</div>' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">⏰</div>' +
+              '<h3>課堂時間不足時</h3>' +
+              '<p>作為派發課後作業的數位解決方案。</p>' +
+            '</div>' +
+          '</div>',
+
+          '<h2 class="intro-title">這堂課，你將學到：</h2>' +
+          '<ul class="intro-list">' +
+            '<li>命題大師與雲端速測的<b>特色</b></li>' +
+            '<li><b>三種命題方式</b>，適合哪些情境</li>' +
+            '<li>如何進行<b>挑題（組卷流程）</b></li>' +
+            '<li>如何<b>產生雲端速測及進行派發</b></li>' +
+          '</ul>'
+        ]
+      },
+      {
         type: "slides",
         title: "命題大師介紹",
         desc: "認識命題大師",
