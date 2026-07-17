@@ -96,6 +96,45 @@ const COURSES = [
     available: true,
     steps: [
       {
+        type: "intro",
+        title: "產品簡介",
+        desc: "先認識行動大師",
+        doneLabel: "我了解了，開始上課",
+        pages: [
+          '<h2 class="intro-title">「翰林行動大師」是什麼？</h2>' +
+          '<p class="intro-lead">它是翰林最核心的<b>「備課平台」</b>。如果說會員中心是翰林的大門，' +
+            '那行動大師就是門後那座<mark class="hl">「應有盡有的數位圖書館」</mark>。</p>' +
+          '<div class="intro-cards">' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">📚</div>' +
+              '<h3>應有盡有的數位圖書館</h3>' +
+              '<p>老師上課要用的電子書、備課資源、影音媒體，通通都在這裡。不論是課本、習作、教案、還是補充影片，一應俱全。</p>' +
+            '</div>' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">⚡</div>' +
+              '<h3>隨時隨地輕鬆備課</h3>' +
+              '<p>只要打開行動大師，老師就能隨時隨地輕鬆備課、上課。</p>' +
+            '</div>' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">📖</div>' +
+              '<h3>內含電子書書櫃</h3>' +
+              '<p>不管學校教室是用觸屏，還是老師自己用筆電、平板投播，都能透過行動大師取得及開啟電子書。</p>' +
+            '</div>' +
+          '</div>',
+
+          '<h2 class="intro-title">這堂課，你會學到</h2>' +
+          '<p class="intro-lead">完成接下來的簡報、影片與測驗後，你將能夠：</p>' +
+          '<ul class="intro-list">' +
+            '<li>行動大師分為<b>哪幾種版本</b></li>' +
+            '<li>國小有哪些<b>重要資源</b></li>' +
+            '<li>老師最需要的<b>題目及互動遊戲</b>在哪裡</li>' +
+            '<li>如何獲得領域<b>最新的消息</b></li>' +
+            '<li>我們要<b>如何進行下載</b></li>' +
+            '<li>發生<b>下載異常</b>時怎麼辦</li>' +
+          '</ul>'
+        ]
+      },
+      {
         type: "slides",
         title: "行動大師介紹",
         desc: "認識行動大師",
