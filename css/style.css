@@ -281,8 +281,30 @@ a { color: var(--brand); text-decoration: none; }
 .step-cta { display: flex; justify-content: center; margin-top: 14px; }
 .btn-text { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; text-decoration: underline; font-family: inherit; }
 .step-hint { margin-right: auto; color: var(--muted); font-size: 14px; font-weight: 700; }
-/* 尚未解鎖時的灰字提示 */
-.step-lock { margin-right: auto; color: var(--muted); font-size: 14px; font-weight: 700; }
+
+/* 尚未解鎖的按鈕：壓灰、不可點，滑鼠移上去顯示原因 */
+.btn.is-locked {
+  position: relative; background: #c6ccdf; color: #fff;
+  box-shadow: none; cursor: not-allowed;
+}
+.btn.is-locked:hover { background: #c6ccdf; }
+.btn.is-locked:active { transform: none; }
+.btn.is-locked::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 11px); right: 0;
+  background: var(--ink); color: #fff; font-size: 13px; font-weight: 700;
+  padding: 8px 13px; border-radius: 9px; white-space: nowrap; letter-spacing: .5px;
+  box-shadow: 0 8px 22px rgba(23, 26, 34, .25);
+  opacity: 0; visibility: hidden; transform: translateY(4px);
+  transition: opacity .15s ease, transform .15s ease; pointer-events: none; z-index: 20;
+}
+.btn.is-locked::before {
+  content: ""; position: absolute; bottom: calc(100% + 5px); right: 26px;
+  border: 6px solid transparent; border-top-color: var(--ink);
+  opacity: 0; visibility: hidden; transition: opacity .15s ease; pointer-events: none; z-index: 20;
+}
+.btn.is-locked:hover::after, .btn.is-locked:hover::before { opacity: 1; visibility: visible; }
+.btn.is-locked:hover::after { transform: translateY(0); }
 /* 讓 hidden 屬性一定生效（.btn 的 display 會蓋掉預設的 hidden） */
 [hidden] { display: none !important; }
 

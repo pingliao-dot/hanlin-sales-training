@@ -222,17 +222,25 @@ function initCourse() {
       '" target="_blank" rel="noopener">' + step.action.label + '</a></div>';
   }
 
-  /* lockText 有值 = 尚未解鎖：顯示灰字提示、隱藏完成鈕 */
+  /* lockText 有值 = 尚未解鎖：按鈕壓灰不可點，滑鼠移上去才顯示原因 */
   function doneButton(i, isDone, labelTodo, lockText) {
     var locked = !!lockText;
     return (
       '<div class="step-actions">' +
-        '<span class="step-lock"' + (locked ? '' : ' hidden') + '>' + (lockText || "") + '</span>' +
-        '<button class="btn btn-primary done-btn" data-step="' + i + '"' + (locked ? ' hidden' : '') + '>' +
+        '<button class="btn btn-primary done-btn' + (locked ? ' is-locked' : '') + '" data-step="' + i + '"' +
+          (locked ? ' data-tip="' + lockText + '"' : '') + '>' +
           (isDone ? "✓ 前往下一步" : labelTodo) +
         '</button>' +
       '</div>'
     );
+  }
+
+  /* 切換按鈕鎖定狀態 */
+  function setLocked(btn, locked, tip) {
+    if (!btn) return;
+    btn.classList.toggle("is-locked", !!locked);
+    if (locked) btn.setAttribute("data-tip", tip || "");
+    else btn.removeAttribute("data-tip");
   }
 
   function wireStepContent(card, step, i, isDone) {
@@ -240,6 +248,7 @@ function initCourse() {
     var doneBtn = card.querySelector(".done-btn");
     if (doneBtn) {
       doneBtn.addEventListener("click", async function () {
+        if (doneBtn.classList.contains("is-locked")) return;  // 尚未解鎖，不能按
         doneBtn.disabled = true;
         await markStepDone(courseId, i);
         resetActiveToCurrent();
@@ -253,13 +262,9 @@ function initCourse() {
     if (step.type === "video") {
       if (isDone) return;
       var vid = card.querySelector("video");
-      var vLock = card.querySelector(".step-lock");
       var vBtn = card.querySelector(".done-btn");
       if (!vid || !vBtn) return;
-      var unlockVideo = function () {
-        if (vLock) vLock.hidden = true;
-        vBtn.hidden = false;
-      };
+      var unlockVideo = function () { setLocked(vBtn, false); };
       vid.addEventListener("ended", unlockVideo);
       // 保險：快到結尾就解鎖（避免 ended 沒觸發卡住）
       vid.addEventListener("timeupdate", function () {
@@ -288,7 +293,6 @@ function initCourse() {
     var curEls = card.querySelectorAll(".cur");
     var n = step.slideCount;
     var pad = function (x) { return (x < 10 ? "0" : "") + x; };
-    var lockEl = card.querySelector(".step-lock");
     var dBtn = card.querySelector(".done-btn");
     function show(idx) {
       slideIndex = (idx + n) % n; // 循環
@@ -296,8 +300,7 @@ function initCourse() {
       curEls.forEach(function (el) { el.textContent = slideIndex + 1; });
       // 翻到最後一頁才解鎖完成鈕
       var unlocked = isDone || n <= 1 || slideIndex === n - 1;
-      if (lockEl) lockEl.hidden = unlocked;
-      if (dBtn) dBtn.hidden = !unlocked;
+      setLocked(dBtn, !unlocked, "請翻到最後一頁，才能前往下一步");
     }
     card.querySelectorAll("[data-nav]").forEach(function (b) {
       b.addEventListener("click", function () {
