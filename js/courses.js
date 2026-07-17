@@ -358,7 +358,7 @@ const COURSES = [
         doneLabel: "我已加入 LINE@，完成",
         pages: [
           '<h2 class="intro-title">「翰林小幫手」是什麼？</h2>' +
-          '<p class="intro-lead">它是由<b>數位部內勤團隊</b>經營、<b>專門服務業務同仁</b>的 LINE 帳號。' +
+          '<p class="intro-lead">它是由<b>數位部</b>經營、<b>專門服務業務同仁</b>的 LINE 帳號。' +
             '同仁如果有數位產品的問題，都可以即時與小幫手聯絡。</p>' +
           '<div class="intro-cards">' +
             '<div class="intro-card">' +
