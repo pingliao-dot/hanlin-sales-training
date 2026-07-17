@@ -412,6 +412,13 @@ a { color: var(--brand); text-decoration: none; }
 }
 .admin-table tbody td { padding: 12px 16px; border-bottom: 1px solid var(--line); color: var(--ink); }
 .admin-table tbody tr:hover { background: #f7f9ff; }
+.row-del {
+  background: transparent; border: none; cursor: pointer; color: #c0392b;
+  font-size: 15px; padding: 4px 9px; border-radius: 7px; line-height: 1; transition: background .15s;
+}
+.row-del:hover { background: #fdecea; }
+.btn-danger { background: #dc2626; color: #fff; box-shadow: 0 8px 20px rgba(220, 38, 38, .25); }
+.btn-danger:hover { background: #b91c1c; }
 .admin-table tbody tr:last-child td { border-bottom: none; }
 
 /* ===== 登入畫面 ===== */
