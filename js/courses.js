@@ -21,6 +21,44 @@ const COURSES = [
     available: true,
     steps: [
       {
+        type: "intro",
+        title: "產品簡介",
+        desc: "先認識會員中心",
+        doneLabel: "我了解了，開始上課",
+        pages: [
+          '<h2 class="intro-title">「翰林會員中心」是什麼？</h2>' +
+          '<p class="intro-lead">它是一個統一的<b>「帳號管理」系統</b>。老師只要完成登入，就能' +
+            '<mark class="hl">一鍵暢行翰林出版提供的所有數位服務與資源</mark>。</p>' +
+          '<div class="intro-cards">' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">🚪</div>' +
+              '<h3>它是「翰林的大門」</h3>' +
+              '<p>要使用翰林強大的數位服務，第一步就是請老師推開這扇大門（登入帳號）。</p>' +
+            '</div>' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">⭐</div>' +
+              '<h3>它是「個人化的起點」</h3>' +
+              '<p>登入不只是為了安全，更是為了幫老師保存各種設定與紀錄。</p>' +
+            '</div>' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">✅</div>' +
+              '<h3>這是「業界的標準配備」</h3>' +
+              '<p>免擔心老師排斥！不只翰林，各大同業、甚至教育部的數位平台，通通都需要登入才能使用，' +
+                '這對老師來說是再熟悉不過的日常操作了。</p>' +
+            '</div>' +
+          '</div>',
+
+          '<h2 class="intro-title">這堂課，你會學到</h2>' +
+          '<p class="intro-lead">完成接下來的簡報、影片與測驗後，你將能夠：</p>' +
+          '<ul class="intro-list">' +
+            '<li>登入方式基本分為<b>哪幾種</b></li>' +
+            '<li>遇到<b>全新、還沒有帳號</b>的老師，建議他申請哪一種</li>' +
+            '<li><b>跑班</b>、使用共用電腦的老師，如何更快速登入</li>' +
+            '<li>並且<b>完成你自己的帳號註冊</b></li>' +
+          '</ul>'
+        ]
+      },
+      {
         type: "slides",
         title: "看簡報",
         desc: "翰林會員中心簡報",

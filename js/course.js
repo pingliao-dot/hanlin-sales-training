@@ -38,6 +38,7 @@ function initCourse() {
   var trackerEl = document.getElementById("stepsTracker");
 
   var typeMeta = {
+    intro:  { icon: "📘", label: "簡介" },
     slides: { icon: "📑", label: "簡報" },
     video:  { icon: "🎬", label: "影片" },
     pdf:    { icon: "📖", label: "手冊" },
@@ -131,6 +132,24 @@ function initCourse() {
   }
 
   function renderStepContent(step, i, isDone) {
+    if (step.type === "intro") {
+      var pages = step.pages || [];
+      var n = pages.length;
+      if (slideIndex >= n) slideIndex = 0;
+      return (
+        '<div class="slides">' +
+          '<div class="intro-stage">' + (pages[slideIndex] || "") + '</div>' +
+          (n > 1
+            ? '<div class="slide-bar">' +
+                '<button class="btn btn-ghost" data-nav="prev">‹ 上一頁</button>' +
+                '<span class="slide-count"><b class="cur">' + (slideIndex + 1) + '</b> / ' + n + '</span>' +
+                '<button class="btn btn-ghost" data-nav="next">下一頁 ›</button>' +
+              '</div>'
+            : '') +
+        '</div>' +
+        doneButton(i, isDone, step.doneLabel || "我已了解，前往下一步")
+      );
+    }
     if (step.type === "slides") {
       return renderSlides(step) + actionButton(step) + doneButton(i, isDone, step.doneLabel || "我已看完簡報，前往下一步");
     }
@@ -220,6 +239,19 @@ function initCourse() {
         render();
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
+    }
+
+    // 產品簡介：翻頁（重新渲染）
+    if (step.type === "intro") {
+      var pageCount = (step.pages || []).length;
+      card.querySelectorAll("[data-nav]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var dir = b.getAttribute("data-nav") === "next" ? 1 : -1;
+          slideIndex = (slideIndex + dir + pageCount) % pageCount;
+          render();
+        });
+      });
+      return;
     }
 
     if (step.type !== "slides") return;
