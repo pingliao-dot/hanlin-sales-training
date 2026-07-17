@@ -249,7 +249,7 @@ const COURSES = [
   {
     id: "quiz-master",
     minutes: 40,          // 學習所需時間（分鐘，含自己操作）
-    title: "命題大師",
+    title: "命題大師與雲端速測",
     subtitle: "翰林命題大師　介紹",
     desc: "認識命題大師的出題功能，協助老師快速命題。",
     badge: "國小業務",
