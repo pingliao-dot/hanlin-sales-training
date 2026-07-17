@@ -121,6 +121,11 @@ a { color: var(--brand); text-decoration: none; }
 }
 .block-card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(23, 26, 34, .14); border-color: var(--accent, var(--brand)); }
 .block-card:hover::before { opacity: 1; }
+.block-time {
+  position: relative; font-size: 13px; font-weight: 700; color: var(--muted);
+  background: #eef1f8; border: 1px solid var(--line);
+  padding: 5px 13px; border-radius: 999px; white-space: nowrap;
+}
 .block-num {
   position: relative; color: var(--num); font-weight: 900; font-size: 17px;
   letter-spacing: 1px; display: inline-flex; align-items: baseline; gap: 4px;

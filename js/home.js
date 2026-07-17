@@ -23,6 +23,7 @@ function initHome() {
     card.style.setProperty("--accent", course.accent || "#2748d6");
 
     card.innerHTML =
+      (course.minutes ? '<span class="block-time">⏱ 約 ' + course.minutes + ' 分鐘</span>' : '') +
       '<span class="block-num">第<b>' + n + '</b>堂課</span>' +
       '<h3 class="block-title">' + course.title + '</h3>' +
       '<span class="block-status ' + statusClass + '">' + statusLabel + '</span>';

@@ -12,6 +12,7 @@
 const COURSES = [
   {
     id: "member-center",
+    minutes: 15,          // 學習所需時間（分鐘，含自己操作）
     title: "會員中心",
     subtitle: "翰林會員中心　推廣與導覽",
     desc: "認識會員中心的功能與推廣話術，學會如何向客戶導覽。",
@@ -85,6 +86,7 @@ const COURSES = [
 
   {
     id: "action-master",
+    minutes: 40,          // 學習所需時間（分鐘，含自己操作）
     title: "行動大師",
     subtitle: "翰林行動大師　介紹與操作",
     desc: "認識行動大師的功能與操作方式，掌握業務作戰要領。",
@@ -129,6 +131,7 @@ const COURSES = [
 
   {
     id: "ebook",
+    minutes: 30,          // 學習所需時間（分鐘，含自己操作）
     title: "電子書",
     subtitle: "翰林電子書　介紹與操作",
     desc: "認識電子書的功能與教學應用，並熟悉實際操作流程。",
@@ -173,6 +176,7 @@ const COURSES = [
 
   {
     id: "quiz-master",
+    minutes: 40,          // 學習所需時間（分鐘，含自己操作）
     title: "命題大師",
     subtitle: "翰林命題大師　介紹",
     desc: "認識命題大師的出題功能，協助老師快速命題。",
@@ -217,6 +221,7 @@ const COURSES = [
 
   {
     id: "line-helper",
+    minutes: 5,          // 學習所需時間（分鐘，含自己操作）
     title: "小幫手",
     subtitle: "翰林小幫手 LINE@",
     desc: "加入翰林小幫手 LINE@，隨時取得業務支援。",
