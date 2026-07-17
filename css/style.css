@@ -259,6 +259,25 @@ a { color: var(--brand); text-decoration: none; }
   font-size: 12px; font-weight: 900; display: grid; place-items: center;
 }
 .intro-list b { color: var(--brand); }
+/* 警告款小卡 */
+.intro-card.warn { background: #fff8ec; border-color: #f0dca5; border-top-color: var(--gold); }
+.intro-card.warn h3 { color: #8a6410; }
+
+/* 加入 LINE@ 區塊 */
+.join-box {
+  display: flex; gap: 26px; align-items: center; flex-wrap: wrap;
+  background: #f5f7fc; border: 1px solid var(--line); border-radius: 14px; padding: 22px;
+}
+.join-qr {
+  width: 172px; height: 172px; flex: none; display: block;
+  background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 8px;
+}
+.join-side { flex: 1; min-width: 250px; }
+.join-note { margin: 16px 0 8px; font-size: 14px; font-weight: 800; color: var(--ink); }
+.join-msg {
+  background: #fff; border: 1px dashed #b9c8ff; border-radius: 10px;
+  padding: 12px 15px; font-size: 15px; font-weight: 800; color: var(--brand); line-height: 1.6;
+}
 .course-page .intro-stage { flex: 1; min-height: 0; overflow-y: auto; }
 
 .quiz-box { background: #f4f7ff; border: 1px dashed #b9c8ff; border-radius: 14px; padding: 24px; text-align: center; }

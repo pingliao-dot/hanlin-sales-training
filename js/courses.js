@@ -352,13 +352,44 @@ const COURSES = [
     available: true,
     steps: [
       {
-        type: "slides",
-        title: "看文件",
-        desc: "加入小幫手 LINE@",
-        slidesDir: "assets/小幫手/slides/",
-        slideCount: 2,
-        action: { label: "➕ 點我直接加入 LINE@", url: "https://line.me/R/ti/p/@jxb9444o" },
-        doneLabel: "我已加入 LINE@，完成"
+        type: "intro",
+        title: "認識小幫手",
+        desc: "認識並加入小幫手 LINE@",
+        doneLabel: "我已加入 LINE@，完成",
+        pages: [
+          '<h2 class="intro-title">「翰林小幫手」是什麼？</h2>' +
+          '<p class="intro-lead">它是由<b>數位部內勤團隊</b>經營、<b>專門服務業務同仁</b>的 LINE 帳號。' +
+            '同仁如果有數位產品的問題，都可以即時與小幫手聯絡。</p>' +
+          '<div class="intro-cards">' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">💬</div>' +
+              '<h3>有問題，隨時問</h3>' +
+              '<p>遇到數位產品的問題就傳訊息給我們，我們會盡快了解狀況並給予協助。</p>' +
+            '</div>' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">🕘</div>' +
+              '<h3>服務時間</h3>' +
+              '<p>週一至週五<br><b>早上 9:00 ～ 下午 6:00</b></p>' +
+            '</div>' +
+            '<div class="intro-card warn">' +
+              '<div class="intro-ico">⚠️</div>' +
+              '<h3>僅服務業務同仁</h3>' +
+              '<p><mark class="hl">此 LINE 並未開放給老師加入，請勿轉傳給老師。</mark></p>' +
+            '</div>' +
+          '</div>',
+
+          '<h2 class="intro-title">最後一步：立即加入小幫手</h2>' +
+          '<p class="intro-lead">用手機掃描 QR code，或直接點按鈕加入。</p>' +
+          '<div class="join-box">' +
+            '<img class="join-qr" src="assets/小幫手/line-qr.png" alt="翰林小幫手 LINE QR code" />' +
+            '<div class="join-side">' +
+              '<a class="btn btn-line" href="https://line.me/R/ti/p/@jxb9444o" target="_blank" rel="noopener">' +
+                '➕ 點我直接加入 LINE@</a>' +
+              '<p class="join-note">加入後，請傳送下面這句話給小幫手 👇</p>' +
+              '<div class="join-msg">hi 我剛加入翰林團隊，此為教育訓練的作業回覆</div>' +
+            '</div>' +
+          '</div>'
+        ]
       }
     ]
   }
