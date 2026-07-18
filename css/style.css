@@ -135,10 +135,17 @@ a { color: var(--brand); text-decoration: none; }
 .block-num b { font-size: 36px; line-height: 1; font-family: Arial, "Segoe UI", sans-serif; }
 .block-title { position: relative; margin: 0; font-size: 27px; font-weight: 900; letter-spacing: 1px; color: var(--ink); }
 /* 完成度 分子/分母 */
-.block-frac { position: relative; font-size: 15px; font-weight: 800; color: var(--muted); }
-.block-frac .frac-num { font-size: 24px; color: var(--ink); }
-.block-frac .frac-num.hot { color: #e67e22; }   /* 未全部完成 → highlight 分子 */
-.block-frac .frac-sep { margin: 0 3px; color: #b8bfce; }
+.block-frac {
+  position: relative; display: inline-flex; align-items: center; gap: 6px;
+  font-size: 15px; font-weight: 800; color: var(--muted);
+}
+.frac-num {                       /* 方框大小固定，highlight 與否都佔一樣空間 */
+  display: inline-grid; place-items: center;
+  min-width: 28px; height: 28px; padding: 0 7px; border-radius: 999px;
+  font-size: 16px; color: var(--ink); background: transparent;
+}
+.frac-num.hot { background: #ffe0b0; color: #b45309; }   /* 未全部完成 → 橘色圓底 */
+.frac-den { color: #b8bfce; }
 
 /* 右上角成績徽章 */
 .block-award {

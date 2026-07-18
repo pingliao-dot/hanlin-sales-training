@@ -43,9 +43,11 @@ function initHome() {
       '<span class="block-num">第<b>' + n + '</b>堂課</span>' +
       '<h3 class="block-title">' + course.title + '</h3>' +
       (course.minutes ? '<span class="block-time">⏱ 約 ' + course.minutes + ' 分鐘</span>' : '') +
-      '<span class="block-frac">完成度 ' +
-        '<b class="frac-num' + hot + '">' + done + '</b>' +
-        '<span class="frac-sep">/</span>' + total + '</span>';
+      '<span class="block-frac">' +
+        '<span class="frac-label">完成度</span>' +
+        '<span class="frac-num' + hot + '">' + done + '</span>' +
+        '<span class="frac-den">/ ' + total + '</span>' +
+      '</span>';
 
     container.appendChild(card);
   });
