@@ -22,7 +22,7 @@ function initCourse() {
   var seenLast = false;     // 這一步「曾經翻到過最後一頁」→ 之後翻回去也保持解鎖
   var keyHandler = null;    // 鍵盤翻頁監聽（避免重複疊加）
   var confettiShown = false;// 彩帶只放一次
-  var SLIDE_V = "?v=7";     // 簡報圖片版本；重新輸出投影片後把數字加 1，強制瀏覽器抓新圖
+  var SLIDE_V = "?v=8";     // 簡報圖片版本；重新輸出投影片後把數字加 1，強制瀏覽器抓新圖
 
   // AI 生成教材提示（步驟設 ai:true 時顯示；要改文字改這裡即可）
   var AI_NOTICE =

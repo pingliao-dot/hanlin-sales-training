@@ -289,6 +289,18 @@ a { color: var(--brand); text-decoration: none; }
   font-size: 12px; font-weight: 900; display: grid; place-items: center;
 }
 .intro-list b { color: var(--brand); }
+/* 「如何進入」的搜尋/網址列 */
+.howto { display: flex; flex-direction: column; gap: 10px; max-width: 720px; margin: 0 0 16px; }
+.howto-row {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: #f5f7fc; border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px;
+}
+.howto-tag {
+  flex: none; font-size: 13px; font-weight: 800; color: var(--brand);
+  background: #e7ecff; padding: 5px 12px; border-radius: 999px; white-space: nowrap;
+}
+.howto-row .howto-val { font-size: 16px; font-weight: 800; color: var(--ink); }
+.howto-row a { font-size: 16px; font-weight: 800; word-break: break-all; }
 /* 警告款小卡 */
 .intro-card.warn { background: #fff8ec; border-color: #f0dca5; border-top-color: var(--gold); }
 .intro-card.warn h3 { color: #8a6410; }

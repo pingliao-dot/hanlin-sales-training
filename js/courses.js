@@ -49,6 +49,21 @@ const COURSES = [
             '</div>' +
           '</div>',
 
+          '<h2 class="intro-title">如何進入？</h2>' +
+          '<p class="intro-lead">兩種方式都能登入會員中心：</p>' +
+          '<div class="intro-cards">' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">🔎</div>' +
+              '<h3>方式一：網站右上角</h3>' +
+              '<p>在各種需要登入的翰林網站，<b>右上角</b>就能看到「登入」按鈕。</p>' +
+            '</div>' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">↪️</div>' +
+              '<h3>方式二：進入產品時</h3>' +
+              '<p>在<b>未登入</b>的狀態下進入產品，系統會自動導向登入畫面。</p>' +
+            '</div>' +
+          '</div>',
+
           '<h2 class="intro-title">這堂課，你將學到：</h2>' +
           '<ul class="intro-list">' +
             '<li>登入方式基本分為<b>哪幾種</b></li>' +
@@ -119,6 +134,15 @@ const COURSES = [
               '<h3>內含電子書書櫃</h3>' +
               '<p>不管學校教室是用觸屏，還是老師自己用筆電、平板投播，都能透過行動大師取得及開啟電子書。</p>' +
             '</div>' +
+          '</div>',
+
+          '<h2 class="intro-title">如何進入？</h2>' +
+          '<p class="intro-lead">兩種方式都能打開行動大師：</p>' +
+          '<div class="howto">' +
+            '<div class="howto-row"><span class="howto-tag">🔎 搜尋</span>' +
+              '<span class="howto-val">翰林行動大師</span></div>' +
+            '<div class="howto-row"><span class="howto-tag">🔗 網址</span>' +
+              '<a href="https://edisc3.hle.com.tw" target="_blank" rel="noopener">https://edisc3.hle.com.tw</a></div>' +
           '</div>',
 
           '<h2 class="intro-title">這堂課，你將學到：</h2>' +
@@ -196,6 +220,24 @@ const COURSES = [
               '<div class="intro-ico">🧰</div>' +
               '<h3>它不只是一本 PDF</h3>' +
               '<p><mark class="hl">而是結合教學工具、互動功能與各種資源的完整學習環境。</mark></p>' +
+            '</div>' +
+          '</div>',
+
+          '<h2 class="intro-title">如何取得電子書？</h2>' +
+          '<div class="howto">' +
+            '<div class="howto-row"><span class="howto-tag">🔎 搜尋</span>' +
+              '<span class="howto-val">翰林行動大師</span></div>' +
+          '</div>' +
+          '<div class="intro-cards">' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">☁️</div>' +
+              '<h3>線上版</h3>' +
+              '<p>直接使用<b>線上版行動大師</b>下載，或直接使用<b>線上版電子書</b>。</p>' +
+            '</div>' +
+            '<div class="intro-card">' +
+              '<div class="intro-ico">💻</div>' +
+              '<h3>電腦版</h3>' +
+              '<p>安裝<b>電腦版行動大師</b>，下載<b>電腦版電子書</b>。</p>' +
             '</div>' +
           '</div>',
 
@@ -297,10 +339,23 @@ const COURSES = [
             '</div>' +
           '</div>',
 
+          '<h2 class="intro-title">如何進入？</h2>' +
+          '<div class="howto">' +
+            '<div class="howto-row"><span class="howto-tag">🔎 搜尋</span>' +
+              '<span class="howto-val">翰林命題大師</span></div>' +
+            '<div class="howto-row"><span class="howto-tag">🔗 網址</span>' +
+              '<a href="https://testbank.hle.com.tw" target="_blank" rel="noopener">https://testbank.hle.com.tw</a></div>' +
+          '</div>' +
+          '<div class="intro-card">' +
+            '<div class="intro-ico">🔗</div>' +
+            '<h3>也整合在行動大師裡</h3>' +
+            '<p>可於行動大師<b>右側</b>選擇「題庫」，點擊「命題大師」的<b>前往</b>按鈕。</p>' +
+          '</div>',
+
           '<h2 class="intro-title">這堂課，你將學到：</h2>' +
           '<ul class="intro-list">' +
             '<li>命題大師與雲端速測的<b>特色</b></li>' +
-            '<li><b>三種命題方式</b>，適合哪些情境</li>' +
+            '<li>命題大師<b>快速、電腦、手動命題</b>，適合什麼情境</li>' +
             '<li>如何進行<b>挑題（組卷流程）</b></li>' +
             '<li>如何<b>產生雲端速測及進行派發</b></li>' +
           '</ul>'
@@ -316,13 +371,6 @@ const COURSES = [
         pdf: "assets/命題大師/命題大師介紹.pdf"
       },
       {
-        type: "video",
-        title: "介紹影片",
-        desc: "命題大師介紹影片",
-        ai: true,
-        file: "assets/命題大師/命題大師介紹影片.mp4"
-      },
-      {
         type: "slides",
         title: "操作引導",
         desc: "命題大師操作引導手冊",
@@ -330,6 +378,13 @@ const COURSES = [
         slidesDir: "assets/命題大師/slides-guide/",
         slideCount: 26,
         pdf: "assets/命題大師/命題大師操作引導.pdf"
+      },
+      {
+        type: "video",
+        title: "介紹影片",
+        desc: "命題大師介紹影片",
+        ai: true,
+        file: "assets/命題大師/命題大師介紹影片.mp4"
       },
       {
         type: "quiz",
