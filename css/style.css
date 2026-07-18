@@ -296,7 +296,7 @@ a { color: var(--brand); text-decoration: none; }
 .course-page .slides-intro { max-width: none; }
 .course-page .intro-wrap { position: relative; flex: 1; min-height: 0; display: flex; }
 .course-page .intro-stage { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 8px; }
-.intro-stage > * { max-width: 1000px; }   /* 文字太寬不好讀，內容再置中收一點 */
+.intro-stage > * { max-width: 1080px; margin-left: auto; margin-right: auto; }   /* 內容置中，避免靠左空一大塊 */
 /* 「往下還有內容」提示：底部漸層 + 跳動箭頭 */
 .scroll-hint {
   position: absolute; left: 0; right: 0; bottom: 0; height: 60px; pointer-events: none;
