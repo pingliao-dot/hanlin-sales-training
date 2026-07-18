@@ -78,7 +78,7 @@ const COURSES = [
         type: "quiz",
         title: "作測驗",
         desc: "國小業務測驗（Google 表單）",
-        url: "https://forms.gle/rzytv8Xq5yVzvTet9"
+        url: "https://forms.gle/35Ny431CQNLbChMZ6"
       }
     ]
   },
