@@ -140,7 +140,7 @@ function initCourse() {
       if (slideIndex >= n) slideIndex = 0;
       if (n > 1 && slideIndex === n - 1) seenLast = true;
       return (
-        '<div class="slides">' +
+        '<div class="slides slides-intro">' +
           '<div class="intro-wrap">' +
             '<div class="intro-stage">' + (pages[slideIndex] || "") + '</div>' +
             '<div class="scroll-hint" hidden><span>往下還有內容</span> ⌄</div>' +
