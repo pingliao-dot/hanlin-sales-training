@@ -143,7 +143,7 @@ function initCourse() {
         '<div class="slides slides-intro">' +
           '<div class="intro-wrap">' +
             '<div class="intro-stage">' + (pages[slideIndex] || "") + '</div>' +
-            '<div class="scroll-hint" hidden><span>往下還有內容</span> ⌄</div>' +
+            '<div class="scroll-hint" hidden><span>往下還有內容</span></div>' +
           '</div>' +
           (n > 1
             ? '<div class="slide-bar">' +

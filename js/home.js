@@ -14,15 +14,16 @@ function initHome() {
     var done = getDoneCount(course.id);
     var allDone = total > 0 && done >= total;
 
-    var statusLabel = allDone ? "已結案" : "進行中";
+    var statusLabel = allDone ? "✓ 已結案" : "進行中";
     var statusClass = allDone ? "status-done" : "status-progress";
 
     var card = document.createElement("a");
-    card.className = "block-card";
+    card.className = "block-card" + (allDone ? " is-done" : "");
     card.href = "course.html?id=" + encodeURIComponent(course.id);
     card.style.setProperty("--accent", course.accent || "#2748d6");
 
     card.innerHTML =
+      (allDone ? '<span class="block-badge-done">✓</span>' : '') +
       '<span class="block-num">第<b>' + n + '</b>堂課</span>' +
       '<h3 class="block-title">' + course.title + '</h3>' +
       (course.minutes ? '<span class="block-time">⏱ 約 ' + course.minutes + ' 分鐘</span>' : '') +
