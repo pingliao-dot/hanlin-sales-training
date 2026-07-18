@@ -1,15 +1,13 @@
 /* =========================================================
-   後台：檢視所有人的學習進度（僅限管理者白名單）
-   由 auth.js 在登入成功後呼叫 initAdmin()
-   - 可搜尋、匯出 CSV
-   - 可刪除單筆，或批次刪除「目前搜尋結果」（測試清理用）
+   後台（僅限管理者白名單）：兩個分頁
+   - 學習進度：看全員進度、搜尋、匯出、刪除
+   - 成績管理：對已完成測驗者填分數、匯出
    ========================================================= */
 async function initAdmin() {
   var app = document.getElementById("adminApp");
   if (!app) return;
   app.innerHTML = '<p class="admin-loading">載入中…</p>';
 
-  // 1) 確認是不是管理者
   var chk = await window.sb.rpc("is_admin");
   if (chk.error || !chk.data) {
     app.innerHTML =
@@ -18,18 +16,37 @@ async function initAdmin() {
     return;
   }
 
-  // 2) 撈全部紀錄
-  var res = await window.sb
+  var pr = await window.sb
     .from("progress_log")
     .select("id, usermail, username, project, step, completed_at")
     .order("completed_at", { ascending: false });
-  if (res.error) {
-    app.innerHTML = '<div class="admin-denied">讀取失敗：' + res.error.message + '</div>';
-    return;
-  }
+  if (pr.error) { app.innerHTML = '<div class="admin-denied">讀取失敗：' + pr.error.message + '</div>'; return; }
+  window.__ADMIN_ROWS = pr.data || [];
 
-  window.__ADMIN_ROWS = res.data || [];
-  renderAdmin();
+  var gr = await window.sb.from("grades").select("usermail, username, project, score");
+  window.__GRADES = {};
+  if (!gr.error && gr.data) gr.data.forEach(function (r) { window.__GRADES[r.usermail + "||" + r.project] = r.score; });
+
+  renderShell();
+}
+
+function renderShell() {
+  var app = document.getElementById("adminApp");
+  var view = window.__ADMIN_VIEW || "progress";
+  app.innerHTML =
+    '<div class="admin-tabs">' +
+      '<button class="admin-tab' + (view === "progress" ? " on" : "") + '" data-view="progress">學習進度</button>' +
+      '<button class="admin-tab' + (view === "grades" ? " on" : "") + '" data-view="grades">成績管理</button>' +
+    '</div>' +
+    '<div id="adminView"></div>';
+  app.querySelectorAll(".admin-tab").forEach(function (b) {
+    b.addEventListener("click", function () {
+      window.__ADMIN_VIEW = b.getAttribute("data-view");
+      renderShell();
+    });
+  });
+  if (view === "grades") renderGrades();
+  else renderProgress();
 }
 
 function fmtTime(iso) {
@@ -40,13 +57,27 @@ function fmtTime(iso) {
     " " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
 }
 
-function renderAdmin() {
-  var app = document.getElementById("adminApp");
+function csvCell(s) {
+  s = (s == null ? "" : String(s));
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function downloadCsv(name, lines) {
+  var blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ---------- 學習進度 ---------- */
+function renderProgress() {
+  var el = document.getElementById("adminView");
   var allRows = window.__ADMIN_ROWS || [];
   var users = {};
   allRows.forEach(function (r) { users[r.usermail] = true; });
 
-  app.innerHTML =
+  el.innerHTML =
     '<div class="admin-bar">' +
       '<div class="admin-stats">' +
         '<span class="stat"><b>' + Object.keys(users).length + '</b> 位使用者</span>' +
@@ -65,16 +96,20 @@ function renderAdmin() {
     '</table></div>';
 
   paintRows(allRows);
-
   document.getElementById("adminSearch").addEventListener("input", function (e) {
     var q = e.target.value.trim().toLowerCase();
     var filtered = !q ? window.__ADMIN_ROWS : window.__ADMIN_ROWS.filter(function (r) {
-      return ((r.username || "") + " " + r.usermail + " " + r.project + " " + r.step)
-        .toLowerCase().indexOf(q) !== -1;
+      return ((r.username || "") + " " + r.usermail + " " + r.project + " " + r.step).toLowerCase().indexOf(q) !== -1;
     });
     paintRows(filtered, q);
   });
-  document.getElementById("adminCsv").addEventListener("click", exportCsv);
+  document.getElementById("adminCsv").addEventListener("click", function () {
+    var lines = ["姓名,usermail,專案,步驟,完成時間"];
+    (window.__ADMIN_ROWS || []).forEach(function (r) {
+      lines.push([r.username || "", r.usermail, r.project, r.step, fmtTime(r.completed_at)].map(csvCell).join(","));
+    });
+    downloadCsv("學習進度.csv", lines);
+  });
   document.getElementById("adminReload").addEventListener("click", initAdmin);
   document.getElementById("adminBulkDel").addEventListener("click", bulkDelete);
 }
@@ -82,100 +117,151 @@ function renderAdmin() {
 function paintRows(rows, query) {
   window.__ADMIN_FILTERED = rows;
   var tbody = document.getElementById("adminRows");
-
-  // 批次刪除鈕：只有「有搜尋條件」時才出現，避免手滑清空全部
   var bulk = document.getElementById("adminBulkDel");
   if (bulk) {
-    if (query && rows.length) {
-      bulk.hidden = false;
-      bulk.textContent = "🗑 刪除這 " + rows.length + " 筆";
-    } else {
-      bulk.hidden = true;
-    }
+    if (query && rows.length) { bulk.hidden = false; bulk.textContent = "🗑 刪除這 " + rows.length + " 筆"; }
+    else bulk.hidden = true;
   }
-
-  if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">沒有資料</td></tr>';
-    return;
-  }
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">沒有資料</td></tr>'; return; }
   tbody.innerHTML = "";
   rows.forEach(function (r) {
     var tr = document.createElement("tr");
-    // 用 textContent 塞值，避免任何注入
     [r.username || "", r.usermail, r.project, r.step, fmtTime(r.completed_at)].forEach(function (v) {
-      var td = document.createElement("td");
-      td.textContent = v || "";
-      tr.appendChild(td);
+      var td = document.createElement("td"); td.textContent = v || ""; tr.appendChild(td);
     });
     var tdAct = document.createElement("td");
     var del = document.createElement("button");
-    del.className = "row-del";
-    del.title = "刪除這筆紀錄";
-    del.textContent = "🗑";
+    del.className = "row-del"; del.title = "刪除這筆紀錄"; del.textContent = "🗑";
     del.addEventListener("click", function () { deleteRow(r, tr); });
-    tdAct.appendChild(del);
-    tr.appendChild(tdAct);
+    tdAct.appendChild(del); tr.appendChild(tdAct);
     tbody.appendChild(tr);
   });
 }
 
-/* 刪除單筆 */
 async function deleteRow(r, tr) {
   var who = (r.username ? r.username + "（" + r.usermail + "）" : r.usermail);
   if (!confirm("確定刪除這筆紀錄嗎？\n\n" + who + "\n" + r.project + " ・ " + r.step)) return;
-
   var res = await window.sb.from("progress_log").delete().eq("id", r.id);
   if (res.error) { alert("刪除失敗：" + res.error.message); return; }
-
   window.__ADMIN_ROWS = (window.__ADMIN_ROWS || []).filter(function (x) { return x.id !== r.id; });
   window.__ADMIN_FILTERED = (window.__ADMIN_FILTERED || []).filter(function (x) { return x.id !== r.id; });
   if (tr && tr.parentNode) tr.parentNode.removeChild(tr);
   refreshStats();
 }
 
-/* 批次刪除「目前搜尋結果」 */
 async function bulkDelete() {
   var rows = window.__ADMIN_FILTERED || [];
   if (!rows.length) return;
   if (!confirm("確定要刪除目前搜尋出來的 " + rows.length + " 筆紀錄嗎？\n此動作無法復原。")) return;
-
   var ids = rows.map(function (r) { return r.id; });
   var res = await window.sb.from("progress_log").delete().in("id", ids);
   if (res.error) { alert("刪除失敗：" + res.error.message); return; }
-
   alert("已刪除 " + rows.length + " 筆紀錄。");
-  initAdmin();  // 重新載入
+  initAdmin();
 }
 
-/* 刪除後更新上方統計數字 */
 function refreshStats() {
   var allRows = window.__ADMIN_ROWS || [];
   var users = {};
   allRows.forEach(function (r) { users[r.usermail] = true; });
   var stats = document.querySelectorAll(".admin-stats .stat b");
-  if (stats.length >= 2) {
-    stats[0].textContent = Object.keys(users).length;
-    stats[1].textContent = allRows.length;
-  }
+  if (stats.length >= 2) { stats[0].textContent = Object.keys(users).length; stats[1].textContent = allRows.length; }
 }
 
-function exportCsv() {
-  var rows = window.__ADMIN_ROWS || [];
-  var cell = function (s) {
-    s = (s == null ? "" : String(s));
-    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-  };
-  var lines = ["姓名,usermail,專案,步驟,完成時間"];
-  rows.forEach(function (r) {
-    lines.push([r.username || "", r.usermail, r.project, r.step, fmtTime(r.completed_at)].map(cell).join(","));
+/* ---------- 成績管理 ---------- */
+function renderGrades() {
+  var el = document.getElementById("adminView");
+  // 「完成測驗」的人 = progress_log 中 step 為「作測驗」的紀錄
+  var quizRows = (window.__ADMIN_ROWS || []).filter(function (r) { return r.step === "作測驗"; });
+  // 依 email + 專案 去重（保留最新）
+  var seen = {}, list = [];
+  quizRows.forEach(function (r) {
+    var k = r.usermail + "||" + r.project;
+    if (!seen[k]) { seen[k] = true; list.push(r); }
   });
-  var blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement("a");
-  a.href = url;
-  a.download = "學習進度.csv";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+
+  el.innerHTML =
+    '<div class="admin-bar">' +
+      '<div class="admin-stats"><span class="stat"><b>' + list.length + '</b> 筆待/已評分</span></div>' +
+      '<div class="admin-tools">' +
+        '<input id="gradeSearch" class="admin-search" type="text" placeholder="搜尋 姓名 / email / 課程…" />' +
+        '<button id="gradeCsv" class="btn btn-primary">匯出成績 CSV</button>' +
+        '<button id="gradeReload" class="btn btn-ghost">重新整理</button>' +
+      '</div>' +
+    '</div>' +
+    '<p class="grade-hint">💡 在「分數」欄填入成績後，業務就能在平台看到；留空則顯示「未公佈」。填完點欄位外自動儲存。</p>' +
+    '<div class="admin-table-wrap"><table class="admin-table">' +
+      '<thead><tr><th>姓名</th><th>使用者 email</th><th>課程</th><th style="width:180px">分數</th><th>狀態</th></tr></thead>' +
+      '<tbody id="gradeRows"></tbody>' +
+    '</table></div>';
+
+  window.__GRADE_LIST = list;
+  paintGrades(list);
+  document.getElementById("gradeSearch").addEventListener("input", function (e) {
+    var q = e.target.value.trim().toLowerCase();
+    var f = !q ? list : list.filter(function (r) {
+      return ((r.username || "") + " " + r.usermail + " " + r.project).toLowerCase().indexOf(q) !== -1;
+    });
+    paintGrades(f);
+  });
+  document.getElementById("gradeCsv").addEventListener("click", exportGrades);
+  document.getElementById("gradeReload").addEventListener("click", initAdmin);
+}
+
+function paintGrades(list) {
+  var tbody = document.getElementById("gradeRows");
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="5" class="admin-empty">目前還沒有人完成測驗</td></tr>'; return; }
+  tbody.innerHTML = "";
+  list.forEach(function (r) {
+    var key = r.usermail + "||" + r.project;
+    var cur = window.__GRADES[key];
+    var tr = document.createElement("tr");
+
+    [r.username || "", r.usermail, r.project].forEach(function (v) {
+      var td = document.createElement("td"); td.textContent = v || ""; tr.appendChild(td);
+    });
+
+    var tdScore = document.createElement("td");
+    var input = document.createElement("input");
+    input.className = "grade-input"; input.type = "text";
+    input.placeholder = "填入分數"; input.value = (cur != null ? cur : "");
+    tdScore.appendChild(input); tr.appendChild(tdScore);
+
+    var tdState = document.createElement("td");
+    tdState.className = "grade-state";
+    tdState.innerHTML = (cur != null && cur !== "") ? '<span class="pill pill-done">已公佈</span>' : '<span class="pill pill-locked">未公佈</span>';
+    tr.appendChild(tdState);
+
+    input.addEventListener("change", function () { saveGrade(r, input.value.trim(), tdState); });
+    tbody.appendChild(tr);
+  });
+}
+
+async function saveGrade(r, score, tdState) {
+  var key = r.usermail + "||" + r.project;
+  if (score === "") {
+    // 清空 → 刪除該成績（回到未公佈）
+    var d = await window.sb.from("grades").delete().eq("usermail", r.usermail).eq("project", r.project);
+    if (d.error) { alert("儲存失敗：" + d.error.message); return; }
+    delete window.__GRADES[key];
+    tdState.innerHTML = '<span class="pill pill-locked">未公佈</span>';
+    return;
+  }
+  var res = await window.sb.from("grades").upsert(
+    { usermail: r.usermail, username: r.username || null, project: r.project, score: score, updated_at: new Date().toISOString() },
+    { onConflict: "usermail,project" }
+  );
+  if (res.error) { alert("儲存失敗：" + res.error.message); return; }
+  window.__GRADES[key] = score;
+  tdState.innerHTML = '<span class="pill pill-done">已公佈 ✓</span>';
+}
+
+function exportGrades() {
+  var list = window.__GRADE_LIST || [];
+  var lines = ["姓名,usermail,課程,分數,狀態"];
+  list.forEach(function (r) {
+    var s = window.__GRADES[r.usermail + "||" + r.project];
+    lines.push([r.username || "", r.usermail, r.project, (s != null ? s : ""), (s != null && s !== "" ? "已公佈" : "未公佈")].map(csvCell).join(","));
+  });
+  downloadCsv("測驗成績.csv", lines);
 }

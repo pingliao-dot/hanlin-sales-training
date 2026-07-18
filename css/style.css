@@ -134,6 +134,10 @@ a { color: var(--brand); text-decoration: none; }
 .block-num b { font-size: 36px; line-height: 1; font-family: Arial, "Segoe UI", sans-serif; }
 .block-title { position: relative; margin: 0; font-size: 27px; font-weight: 900; letter-spacing: 1px; color: var(--ink); }
 .block-status { position: relative; font-size: 14px; font-weight: 800; padding: 6px 18px; border-radius: 999px; }
+.block-grade { position: relative; font-size: 14px; font-weight: 800; }
+.block-grade.has { color: #0f8a45; }
+.block-grade.has b { font-size: 18px; }
+.block-grade.none { color: var(--muted); font-weight: 700; }
 .status-progress { background: #eaeefc; color: var(--brand); }
 .status-done { background: #d6f3e2; color: #0f8a45; }
 
@@ -507,6 +511,21 @@ a { color: var(--brand); text-decoration: none; }
 
 /* ===== 後台 ===== */
 .admin-wrap { padding: 34px 22px 70px; }
+.admin-tabs { display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 2px solid var(--line); }
+.admin-tab {
+  background: none; border: none; cursor: pointer; font-family: inherit;
+  font-size: 15px; font-weight: 800; color: var(--muted); padding: 10px 18px;
+  border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color .15s, border-color .15s;
+}
+.admin-tab:hover { color: var(--ink); }
+.admin-tab.on { color: var(--brand); border-bottom-color: var(--brand); }
+.grade-hint { background: #fff8ec; border: 1px solid #f6dfb0; color: #7a5a12; border-radius: 10px; padding: 10px 14px; font-size: 13.5px; margin: 0 0 14px; }
+.grade-input {
+  width: 150px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px;
+  font-family: inherit; font-size: 15px; font-weight: 700; color: var(--ink); background: #fff;
+}
+.grade-input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(39,72,214,.12); }
+.grade-state .pill { font-size: 12px; }
 .admin-loading, .admin-empty { color: var(--muted); padding: 24px; text-align: center; }
 .admin-denied {
   background: #fdecea; border: 1px solid #f5c6c0; color: #a5342a;

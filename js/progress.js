@@ -10,9 +10,11 @@
 var Progress = (function () {
   // cache: { 專案標題: Set(已完成步驟標題) }
   var cache = {};
+  var gradeCache = {};   // { 專案標題: 分數 }
 
   async function load() {
     cache = {};
+    gradeCache = {};
     if (!window.sb || !window.CURRENT_USER) return;
     var res = await window.sb
       .from("progress_log")
@@ -23,6 +25,23 @@ var Progress = (function () {
       if (!cache[r.project]) cache[r.project] = {};
       cache[r.project][r.step] = true;
     });
+
+    // 讀自己的成績（沒有 grades 表也不會壞）
+    try {
+      var g = await window.sb
+        .from("grades")
+        .select("project, score")
+        .eq("usermail", window.CURRENT_USER);
+      if (!g.error && g.data) {
+        g.data.forEach(function (r) { gradeCache[r.project] = r.score; });
+      }
+    } catch (e) { /* 忽略 */ }
+  }
+
+  function grade(courseId) {
+    var c = getCourse(courseId);
+    if (!c) return null;
+    return (gradeCache[c.title] != null && gradeCache[c.title] !== "") ? gradeCache[c.title] : null;
   }
 
   function completedMap(projectTitle) {
@@ -81,7 +100,7 @@ var Progress = (function () {
     if (res.error) console.error("重設進度失敗", res.error);
   }
 
-  return { load: load, doneCount: doneCount, markStepDone: markStepDone, resetCourse: resetCourse };
+  return { load: load, doneCount: doneCount, markStepDone: markStepDone, resetCourse: resetCourse, grade: grade };
 })();
 
 /* 讓其他檔案沿用原本的函式名稱 */
