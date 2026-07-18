@@ -226,24 +226,34 @@ function initCourse() {
   /* 全螢幕：優先用原生全螢幕；不支援時（例如 iPhone Safari）改用 CSS 假全螢幕 */
   function toggleFullscreen(el) {
     if (!el) return;
+
+    // 目前若在「假全螢幕」→ 直接關掉
+    if (el.classList.contains("fs-fallback")) {
+      el.classList.remove("fs-fallback");
+      document.body.classList.remove("fs-lock");
+      return;
+    }
+
+    var fsEnabled = document.fullscreenEnabled || document.webkitFullscreenEnabled;
     var req = el.requestFullscreen || el.webkitRequestFullscreen;
+
+    // iPhone Safari 對「非影片元素」不支援真全螢幕 → 用 CSS 假全螢幕
+    if (!fsEnabled || !req) {
+      el.classList.add("fs-fallback");
+      document.body.classList.add("fs-lock");
+      return;
+    }
+
     var exit = document.exitFullscreen || document.webkitExitFullscreen;
     var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+    if (fsEl) { if (exit) exit.call(document); return; }
 
-    if (!req) {                       // 不支援原生 → CSS 假全螢幕
-      el.classList.toggle("fs-fallback");
-      return;
-    }
-    if (fsEl) {
-      if (exit) exit.call(document);
-      return;
-    }
     try {
       var p = req.call(el);
-      // 有些瀏覽器會回傳被拒絕的 Promise → 一樣退回假全螢幕
-      if (p && p.catch) p.catch(function () { el.classList.add("fs-fallback"); });
+      if (p && p.catch) p.catch(function () { el.classList.add("fs-fallback"); document.body.classList.add("fs-lock"); });
     } catch (e) {
       el.classList.add("fs-fallback");
+      document.body.classList.add("fs-lock");
     }
   }
 

@@ -264,7 +264,9 @@ a { color: var(--brand); text-decoration: none; }
   width: auto; height: auto; max-width: 100vw; max-height: 100vh; object-fit: contain; margin: auto;
 }
 .slide-stage.fs-fallback .slide-nav { width: 18vw; font-size: 48px; }
-.slide-stage.fs-fallback .slide-fs { top: 14px; right: 14px; width: 44px; height: 44px; }
+.slide-stage.fs-fallback .slide-fs { top: 14px; right: 14px; width: 44px; height: 44px; z-index: 10000; }
+.slide-stage.fs-fallback .slide-badge { z-index: 10000; }
+body.fs-lock { overflow: hidden; }   /* 假全螢幕時鎖住背景捲動 */
 
 .slide-stage:fullscreen, .slide-stage:-webkit-full-screen { width: 100vw; height: 100vh; background: #0d1326; }
 .slide-stage:fullscreen .slide-img, .slide-stage:-webkit-full-screen .slide-img { width: auto; height: auto; max-width: 100vw; max-height: 100vh; object-fit: contain; }
@@ -649,7 +651,11 @@ a { color: var(--brand); text-decoration: none; }
 
   /* 手機：解除鎖高、改回可捲動，避免內容被壓扁 */
   .course-page { height: auto; overflow: visible; }
+  /* 步驟 BAR：只顯示「目前看的那一步」名稱，其他維持圓點 */
   .course-bar .node-label { display: none; }
+  .course-bar .node-active .node-label,
+  .course-bar .node-current .node-label { display: inline; white-space: nowrap; font-size: 14px; }
+  .brand-text { white-space: nowrap; }
   .course-page .step-body { overflow: visible; }
   .course-page .slide-stage, .course-page .viewer { min-height: 46vh; }
   .course-page .pdf-viewer iframe { height: 70vh; }
