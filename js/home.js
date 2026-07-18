@@ -58,6 +58,6 @@ function gradeBadge(score) {
   var v = parseFloat(s);
   if (v >= 100) return { icon: "🥇", text: v + " 分", cls: "g-gold" };
   if (v >= 90)  return { icon: "🥈", text: v + " 分", cls: "g-silver" };
-  if (v >= 80)  return { icon: "", text: v + " 分", cls: "g-plain" };
+  if (v >= 80)  return { icon: "🙂", text: v + " 分", cls: "g-plain" };
   return { icon: "😢", text: v + " 分", cls: "g-low" };
 }
