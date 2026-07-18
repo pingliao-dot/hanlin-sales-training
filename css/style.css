@@ -292,7 +292,31 @@ a { color: var(--brand); text-decoration: none; }
   background: #fff; border: 1px dashed #b9c8ff; border-radius: 10px;
   padding: 12px 15px; font-size: 15px; font-weight: 800; color: var(--brand); line-height: 1.6;
 }
-.course-page .intro-stage { flex: 1; min-height: 0; overflow-y: auto; }
+.course-page .intro-wrap { position: relative; flex: 1; min-height: 0; display: flex; }
+.course-page .intro-stage { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 8px; }
+/* 「往下還有內容」提示：底部漸層 + 跳動箭頭 */
+.scroll-hint {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 60px; pointer-events: none;
+  display: flex; align-items: flex-end; justify-content: center; gap: 6px; padding-bottom: 6px;
+  font-size: 13px; font-weight: 800; color: var(--brand);
+  background: linear-gradient(transparent, #ffffff 78%);
+  animation: hintBob 1.3s ease-in-out infinite;
+}
+@keyframes hintBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+
+/* 矮螢幕：把簡介排版縮小，盡量一頁裝得下 */
+@media (max-height: 720px) {
+  .course-page .intro-title { font-size: 21px; margin-bottom: 8px; }
+  .course-page .intro-title::before { margin-bottom: 8px; }
+  .course-page .intro-lead { font-size: 14.5px; margin-bottom: 12px; line-height: 1.6; }
+  .course-page .intro-card { padding: 12px 14px; }
+  .course-page .intro-card h3 { font-size: 15px; }
+  .course-page .intro-card p { font-size: 13px; line-height: 1.55; }
+  .course-page .intro-ico { font-size: 22px; margin-bottom: 5px; }
+  .course-page .intro-cards { gap: 10px; }
+  .course-page .intro-list li { padding: 8px 0 8px 32px; font-size: 14.5px; }
+}
+@media (prefers-reduced-motion: reduce) { .scroll-hint { animation: none; } }
 
 .quiz-box { background: #f4f7ff; border: 1px dashed #b9c8ff; border-radius: 14px; padding: 24px; text-align: center; }
 .quiz-box p { margin: 0 0 16px; color: #50596d; }

@@ -141,7 +141,10 @@ function initCourse() {
       if (n > 1 && slideIndex === n - 1) seenLast = true;
       return (
         '<div class="slides">' +
-          '<div class="intro-stage">' + (pages[slideIndex] || "") + '</div>' +
+          '<div class="intro-wrap">' +
+            '<div class="intro-stage">' + (pages[slideIndex] || "") + '</div>' +
+            '<div class="scroll-hint" hidden><span>往下還有內容</span> ⌄</div>' +
+          '</div>' +
           (n > 1
             ? '<div class="slide-bar">' +
                 '<button class="btn btn-ghost" data-nav="prev">‹ 上一頁</button>' +
@@ -301,7 +304,7 @@ function initCourse() {
       return;
     }
 
-    // 產品簡介：翻頁（重新渲染）
+    // 產品簡介：翻頁（重新渲染）+ 「往下還有」提示
     if (step.type === "intro") {
       var pageCount = (step.pages || []).length;
       card.querySelectorAll("[data-nav]").forEach(function (b) {
@@ -311,6 +314,19 @@ function initCourse() {
           render();
         });
       });
+
+      // 內容超出可視範圍時，底部顯示「往下還有內容 ⌄」，捲到底就隱藏
+      var stage = card.querySelector(".intro-stage");
+      var hint = card.querySelector(".scroll-hint");
+      if (stage && hint) {
+        var updateHint = function () {
+          var more = stage.scrollHeight - stage.clientHeight - stage.scrollTop > 12;
+          hint.hidden = !more;
+        };
+        stage.addEventListener("scroll", updateHint);
+        window.addEventListener("resize", updateHint);
+        setTimeout(updateHint, 60);   // 等版面算好再判斷
+      }
       return;
     }
 
