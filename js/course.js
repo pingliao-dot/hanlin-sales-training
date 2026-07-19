@@ -224,15 +224,25 @@ function initCourse() {
   }
 
   /* 全螢幕：優先用原生全螢幕；不支援時（例如 iPhone Safari）改用 CSS 假全螢幕 */
+  function enterFakeFs(el) {
+    // 移到 body 最外層，避開有 transform/動畫 的祖先，position:fixed 才能真正滿版
+    el._fsParent = el.parentNode;
+    el._fsNext = el.nextSibling;
+    document.body.appendChild(el);
+    el.classList.add("fs-fallback");
+    document.body.classList.add("fs-lock");
+  }
+  function exitFakeFs(el) {
+    el.classList.remove("fs-fallback");
+    document.body.classList.remove("fs-lock");
+    if (el._fsParent) { el._fsParent.insertBefore(el, el._fsNext || null); el._fsParent = null; el._fsNext = null; }
+  }
+
   function toggleFullscreen(el) {
     if (!el) return;
 
-    // 目前若在「假全螢幕」→ 直接關掉
-    if (el.classList.contains("fs-fallback")) {
-      el.classList.remove("fs-fallback");
-      document.body.classList.remove("fs-lock");
-      return;
-    }
+    // 目前若在「假全螢幕」→ 直接關掉、移回原位
+    if (el.classList.contains("fs-fallback")) { exitFakeFs(el); return; }
 
     var fsEnabled = document.fullscreenEnabled || document.webkitFullscreenEnabled;
     var req = el.requestFullscreen || el.webkitRequestFullscreen;
@@ -241,11 +251,7 @@ function initCourse() {
       (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
 
     // 不支援原生元素全螢幕 → 用 CSS 假全螢幕
-    if (isIOS || !fsEnabled || !req) {
-      el.classList.add("fs-fallback");
-      document.body.classList.add("fs-lock");
-      return;
-    }
+    if (isIOS || !fsEnabled || !req) { enterFakeFs(el); return; }
 
     var exit = document.exitFullscreen || document.webkitExitFullscreen;
     var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
@@ -253,10 +259,9 @@ function initCourse() {
 
     try {
       var p = req.call(el);
-      if (p && p.catch) p.catch(function () { el.classList.add("fs-fallback"); document.body.classList.add("fs-lock"); });
+      if (p && p.catch) p.catch(function () { enterFakeFs(el); });
     } catch (e) {
-      el.classList.add("fs-fallback");
-      document.body.classList.add("fs-lock");
+      enterFakeFs(el);
     }
   }
 
