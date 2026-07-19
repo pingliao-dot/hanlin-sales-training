@@ -92,7 +92,7 @@ a { color: var(--brand); text-decoration: none; }
 }
 
 /* ===== 學習區塊 ===== */
-.blocks-section { padding: 56px 0 84px; }
+.blocks-section { padding-top: 56px; padding-bottom: 84px; }  /* 只設上下，保留 .wrap 的左右留白 */
 .section-head { position: relative; margin-bottom: 34px; }
 .section-watermark {
   position: absolute; right: 0; top: -46px; z-index: 0; pointer-events: none;
@@ -648,7 +648,7 @@ body.fs-lock { overflow: hidden; }   /* 假全螢幕時鎖住背景捲動 */
   .blocks-grid { grid-template-columns: 1fr; gap: 16px; }
   .block-card { aspect-ratio: auto; padding: 44px 20px 24px; min-height: 220px; }
   .hero { padding: 48px 0 52px; }
-  .blocks-section { padding: 40px 0 60px; }
+  .blocks-section { padding-top: 40px; padding-bottom: 60px; }
 
   /* 手機：解除鎖高、改回可捲動，避免內容被壓扁 */
   .course-page { height: auto; overflow: visible; }
