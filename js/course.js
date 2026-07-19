@@ -236,9 +236,12 @@ function initCourse() {
 
     var fsEnabled = document.fullscreenEnabled || document.webkitFullscreenEnabled;
     var req = el.requestFullscreen || el.webkitRequestFullscreen;
+    // iPhone / iPad（含偽裝成 Mac 的 iPad）對「非影片元素」的真全螢幕不可靠 → 一律用假全螢幕
+    var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+      (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
 
-    // iPhone Safari 對「非影片元素」不支援真全螢幕 → 用 CSS 假全螢幕
-    if (!fsEnabled || !req) {
+    // 不支援原生元素全螢幕 → 用 CSS 假全螢幕
+    if (isIOS || !fsEnabled || !req) {
       el.classList.add("fs-fallback");
       document.body.classList.add("fs-lock");
       return;
