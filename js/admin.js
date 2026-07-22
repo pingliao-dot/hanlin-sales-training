@@ -155,47 +155,153 @@ function renderProgress() {
   var users = {};
   allRows.forEach(function (r) { users[r.usermail] = true; });
 
+  var mode = window.__PROG_MODE || "list";
   el.innerHTML =
     '<div class="admin-bar">' +
-      '<div class="admin-stats">' +
-        '<span class="stat"><b>' + Object.keys(users).length + '</b> 位使用者</span>' +
-        '<span class="stat"><b>' + allRows.length + '</b> 筆完成紀錄</span>' +
+      '<div class="admin-toggle">' +
+        '<button class="seg' + (mode === "list" ? " on" : "") + '" data-mode="list">列表</button>' +
+        '<button class="seg' + (mode === "matrix" ? " on" : "") + '" data-mode="matrix">完成度總覽</button>' +
       '</div>' +
       '<div class="admin-tools">' +
         regionFilterHtml("progRegion") +
-        '<input id="adminSearch" class="admin-search" type="text" placeholder="搜尋 姓名 / email / 專案 / 步驟…" />' +
+        '<input id="adminSearch" class="admin-search" type="text" placeholder="搜尋 姓名 / email…" />' +
         '<button id="adminBulkDel" class="btn btn-danger" hidden></button>' +
         '<button id="adminCsv" class="btn btn-primary">匯出 CSV</button>' +
         '<button id="adminReload" class="btn btn-ghost">重新整理</button>' +
       '</div>' +
     '</div>' +
-    '<div class="admin-table-wrap"><table class="admin-table">' +
-      '<thead><tr><th>區別</th><th>職位</th><th>姓名</th><th>使用者 email</th><th>專案</th><th>步驟</th><th>完成時間</th><th></th></tr></thead>' +
-      '<tbody id="adminRows"></tbody>' +
-    '</table></div>';
+    '<div id="progBody"></div>';
 
-  function apply() {
-    var q = (document.getElementById("adminSearch").value || "").trim().toLowerCase();
-    var rf = document.getElementById("progRegion").value;
-    var rows = (window.__ADMIN_ROWS || []).filter(function (r) {
-      if (!passRegion(r.usermail, rf)) return false;
-      if (!q) return true;
-      return ((r.username || "") + " " + r.usermail + " " + r.project + " " + r.step + " " + getRegion(r.usermail) + " " + getTitle(r.usermail)).toLowerCase().indexOf(q) !== -1;
-    });
-    paintRows(sortByRegionName(rows), q || (rf !== "__all"));
-  }
-  paintRows(sortByRegionName(window.__ADMIN_ROWS || []));
-  document.getElementById("adminSearch").addEventListener("input", apply);
-  document.getElementById("progRegion").addEventListener("change", apply);
-  document.getElementById("adminCsv").addEventListener("click", function () {
-    var lines = ["區別,職位,姓名,usermail,專案,步驟,完成時間"];
-    sortByRegionName(window.__ADMIN_ROWS || []).forEach(function (r) {
-      lines.push([getRegion(r.usermail), getTitle(r.usermail), r.username || "", r.usermail, r.project, r.step, fmtTime(r.completed_at)].map(csvCell).join(","));
-    });
-    downloadCsv("學習進度.csv", lines);
+  el.querySelectorAll(".seg").forEach(function (b) {
+    b.addEventListener("click", function () { window.__PROG_MODE = b.getAttribute("data-mode"); renderProgress(); });
   });
+  document.getElementById("adminSearch").addEventListener("input", drawProgress);
+  document.getElementById("progRegion").addEventListener("change", drawProgress);
   document.getElementById("adminReload").addEventListener("click", initAdmin);
   document.getElementById("adminBulkDel").addEventListener("click", bulkDelete);
+  document.getElementById("adminCsv").addEventListener("click", function () {
+    if ((window.__PROG_MODE || "list") === "matrix") exportMatrix();
+    else exportProgressList();
+  });
+
+  drawProgress();
+}
+
+function currentProgFilter() {
+  var q = (document.getElementById("adminSearch").value || "").trim().toLowerCase();
+  var rf = document.getElementById("progRegion").value;
+  return { q: q, rf: rf };
+}
+
+function drawProgress() {
+  var mode = window.__PROG_MODE || "list";
+  var bulk = document.getElementById("adminBulkDel");
+  if (bulk && mode === "matrix") bulk.hidden = true;
+  if (mode === "matrix") drawMatrix();
+  else drawList();
+}
+
+function drawList() {
+  var body = document.getElementById("progBody");
+  body.innerHTML =
+    '<div class="admin-table-wrap"><table class="admin-table">' +
+    '<thead><tr><th>區別</th><th>職位</th><th>姓名</th><th>使用者 email</th><th>專案</th><th>步驟</th><th>完成時間</th><th></th></tr></thead>' +
+    '<tbody id="adminRows"></tbody></table></div>';
+  var f = currentProgFilter();
+  var rows = (window.__ADMIN_ROWS || []).filter(function (r) {
+    if (!passRegion(r.usermail, f.rf)) return false;
+    if (!f.q) return true;
+    return ((r.username || "") + " " + r.usermail + " " + r.project + " " + r.step + " " + getRegion(r.usermail) + " " + getTitle(r.usermail)).toLowerCase().indexOf(f.q) !== -1;
+  });
+  paintRows(sortByRegionName(rows), f.q || (f.rf !== "__all"));
+}
+
+/* 完成度矩陣：每位業務一列、每個專案一欄 */
+function buildProgIndex() {
+  var idx = {};
+  (window.__ADMIN_ROWS || []).forEach(function (r) {
+    (idx[r.usermail] = idx[r.usermail] || {});
+    (idx[r.usermail][r.project] = idx[r.usermail][r.project] || {});
+    idx[r.usermail][r.project][r.step] = true;
+  });
+  return idx;
+}
+function courseDone(idx, email, course) {
+  var m = idx[email] && idx[email][course.title];
+  if (!m) return 0;
+  var c = 0;
+  course.steps.forEach(function (s) { if (m[s.title]) c++; });
+  return c;
+}
+function activeCourses() { return (window.COURSES || []).filter(function (c) { return c.available; }); }
+
+function drawMatrix() {
+  var body = document.getElementById("progBody");
+  var courses = activeCourses();
+  var idx = buildProgIndex();
+  var f = currentProgFilter();
+
+  var members = buildRoster().filter(function (u) {
+    if (!passRegion(u.usermail, f.rf)) return false;
+    if (!f.q) return true;
+    return ((u.username || "") + " " + u.usermail + " " + getRegion(u.usermail) + " " + getTitle(u.usermail)).toLowerCase().indexOf(f.q) !== -1;
+  });
+  members = sortByRegionName(members);
+
+  var head = '<tr><th>區別</th><th>姓名</th>';
+  courses.forEach(function (c) { head += '<th class="mtx-h">' + c.title + '</th>'; });
+  head += '<th class="mtx-h">整體</th></tr>';
+
+  var bodyRows = "";
+  members.forEach(function (u) {
+    var doneSum = 0, totalSum = 0;
+    var cells = "";
+    courses.forEach(function (c) {
+      var total = c.steps.length;
+      var done = courseDone(idx, u.usermail, c);
+      doneSum += done; totalSum += total;
+      var pct = total ? Math.round(done / total * 100) : 0;
+      var cls = done === 0 ? "mtx-zero" : (done >= total ? "mtx-done" : "mtx-part");
+      cells += '<td class="mtx-cell ' + cls + '">' +
+        '<div class="mtx-bar"><span style="width:' + pct + '%"></span></div>' +
+        '<div class="mtx-frac">' + done + '/' + total + '</div></td>';
+    });
+    var opct = totalSum ? Math.round(doneSum / totalSum * 100) : 0;
+    cells += '<td class="mtx-cell ' + (opct >= 100 ? "mtx-done" : opct > 0 ? "mtx-part" : "mtx-zero") + '">' +
+      '<div class="mtx-bar"><span style="width:' + opct + '%"></span></div>' +
+      '<div class="mtx-frac">' + opct + '%</div></td>';
+    bodyRows += '<tr><td>' + (getRegion(u.usermail) || '<span class="region-none">未指定</span>') + '</td>' +
+      '<td>' + (u.username || u.usermail) + '</td>' + cells + '</tr>';
+  });
+  if (!members.length) bodyRows = '<tr><td colspan="' + (courses.length + 3) + '" class="admin-empty">沒有資料</td></tr>';
+
+  body.innerHTML = '<div class="admin-table-wrap"><table class="admin-table mtx-table"><thead>' + head + '</thead><tbody>' + bodyRows + '</tbody></table></div>';
+}
+
+function exportProgressList() {
+  var lines = ["區別,職位,姓名,usermail,專案,步驟,完成時間"];
+  sortByRegionName(window.__ADMIN_ROWS || []).forEach(function (r) {
+    lines.push([getRegion(r.usermail), getTitle(r.usermail), r.username || "", r.usermail, r.project, r.step, fmtTime(r.completed_at)].map(csvCell).join(","));
+  });
+  downloadCsv("學習進度.csv", lines);
+}
+function exportMatrix() {
+  var courses = activeCourses();
+  var idx = buildProgIndex();
+  var header = ["區別", "職位", "姓名", "usermail"].concat(courses.map(function (c) { return c.title; })).concat(["整體完成度"]);
+  var lines = [header.map(csvCell).join(",")];
+  sortByRegionName(buildRoster()).forEach(function (u) {
+    var doneSum = 0, totalSum = 0;
+    var cols = courses.map(function (c) {
+      var total = c.steps.length, done = courseDone(idx, u.usermail, c);
+      doneSum += done; totalSum += total;
+      return done + "/" + total;
+    });
+    var opct = totalSum ? Math.round(doneSum / totalSum * 100) + "%" : "0%";
+    var row = [getRegion(u.usermail), getTitle(u.usermail), u.username || "", u.usermail].concat(cols).concat([opct]);
+    lines.push(row.map(csvCell).join(","));
+  });
+  downloadCsv("完成度總覽.csv", lines);
 }
 
 function paintRows(rows, filtering) {

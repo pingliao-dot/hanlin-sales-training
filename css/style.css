@@ -527,6 +527,26 @@ body.fs-lock { overflow: hidden; }   /* 假全螢幕時鎖住背景捲動 */
 }
 .admin-tab:hover { color: var(--ink); }
 .admin-tab.on { color: var(--brand); border-bottom-color: var(--brand); }
+
+/* 列表 / 總覽 切換鈕 */
+.admin-toggle { display: inline-flex; background: #eef1f8; border-radius: 999px; padding: 3px; }
+.admin-toggle .seg {
+  border: none; background: none; cursor: pointer; font-family: inherit; font-weight: 800;
+  font-size: 13px; color: var(--muted); padding: 7px 16px; border-radius: 999px; transition: all .15s;
+}
+.admin-toggle .seg.on { background: #fff; color: var(--brand); box-shadow: 0 2px 6px rgba(23,26,34,.1); }
+
+/* 完成度矩陣 */
+.mtx-table th.mtx-h { text-align: center; }
+.mtx-cell { text-align: center; vertical-align: middle; }
+.mtx-bar { height: 7px; background: #e6eaf2; border-radius: 99px; overflow: hidden; margin: 0 auto 4px; max-width: 120px; }
+.mtx-bar span { display: block; height: 100%; border-radius: 99px; }
+.mtx-frac { font-size: 12px; font-weight: 800; color: var(--muted); }
+.mtx-cell.mtx-done .mtx-bar span { background: var(--done); }
+.mtx-cell.mtx-done .mtx-frac { color: #0f8a45; }
+.mtx-cell.mtx-part .mtx-bar span { background: #e8890c; }
+.mtx-cell.mtx-part .mtx-frac { color: #b45309; }
+.mtx-cell.mtx-zero .mtx-frac { color: #9aa2b1; }
 .grade-hint { background: #fff8ec; border: 1px solid #f6dfb0; color: #7a5a12; border-radius: 10px; padding: 10px 14px; font-size: 13.5px; margin: 0 0 14px; }
 .grade-input {
   width: 150px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px;
