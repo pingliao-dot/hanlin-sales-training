@@ -13,6 +13,7 @@ const COURSES = [
   {
     id: "member-center",
     minutes: 15,          // 學習所需時間（分鐘，含自己操作）
+    gradeCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3hMcuzSAMlBiACCBSuAwpksB5yVHq5XS-s4aRbOMiH6ChWqetq2-1GK_nGmSzpIvGH2YtmIJRWqf0/pub?output=csv",
     title: "會員中心",
     subtitle: "翰林會員中心　推廣與導覽",
     desc: "認識會員中心的功能與推廣話術，學會如何向客戶導覽。",
@@ -194,6 +195,7 @@ const COURSES = [
   {
     id: "ebook",
     minutes: 30,          // 學習所需時間（分鐘，含自己操作）
+    gradeCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_cLRx-38DCTjI0xAfVYL9n4VD12uguOzi0q_wh5gQqEEBkDOuwE-p0BTwooraw2hW9lG2a63JAXKj/pub?output=csv",
     title: "電子書",
     subtitle: "翰林電子書　介紹與操作",
     desc: "認識電子書的功能與教學應用，並熟悉實際操作流程。",
@@ -294,6 +296,7 @@ const COURSES = [
   {
     id: "quiz-master",
     minutes: 40,          // 學習所需時間（分鐘，含自己操作）
+    gradeCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRjLj-S8fEUsIbjx4ORh7Oj3HUw6nI6-QWqFisqzohFqTGH90Q2MkDkGlTJIoZuxT-REpZcck1aBVaL/pub?output=csv",
     title: "命題大師與雲端速測",
     subtitle: "翰林命題大師　介紹",
     desc: "認識命題大師的出題功能，協助老師快速命題。",
