@@ -74,7 +74,16 @@ function passRegion(email, filterVal) {
   if (filterVal === "__none") return r === "";
   return r === filterVal;
 }
-function regionSelectCell(email) {
+/* 唯讀區別（進度/成績頁用；指定在「學員名單」做） */
+function regionTextCell(email) {
+  var td = document.createElement("td");
+  var r = getRegion(email);
+  if (r) { td.textContent = r; }
+  else { td.innerHTML = '<span class="region-none">未指定</span>'; }
+  return td;
+}
+/* 可編輯區別下拉（學員名單用） */
+function regionSelectCell(email, onChanged) {
   var cur = getRegion(email);
   var opts = '<option value="">未指定</option>';
   (window.REGION_LIST || []).forEach(function (rg) {
@@ -84,7 +93,9 @@ function regionSelectCell(email) {
   var sel = document.createElement("select");
   sel.className = "region-sel";
   sel.innerHTML = opts;
-  sel.addEventListener("change", function () { setRegion(email, sel.value); });
+  sel.addEventListener("change", function () {
+    setRegion(email, sel.value).then(function () { if (onChanged) onChanged(); });
+  });
   td.appendChild(sel);
   return td;
 }
@@ -109,6 +120,7 @@ function renderShell() {
     '<div class="admin-tabs">' +
       '<button class="admin-tab' + (view === "progress" ? " on" : "") + '" data-view="progress">學習進度</button>' +
       '<button class="admin-tab' + (view === "grades" ? " on" : "") + '" data-view="grades">成績管理</button>' +
+      '<button class="admin-tab' + (view === "roster" ? " on" : "") + '" data-view="roster">學員名單</button>' +
       '<button class="admin-tab' + (view === "admins" ? " on" : "") + '" data-view="admins">管理者設定</button>' +
     '</div>' +
     '<div id="adminView"></div>';
@@ -116,6 +128,7 @@ function renderShell() {
     b.addEventListener("click", function () { window.__ADMIN_VIEW = b.getAttribute("data-view"); renderShell(); });
   });
   if (view === "grades") renderGrades();
+  else if (view === "roster") renderRoster();
   else if (view === "admins") renderAdmins();
   else renderProgress();
 }
@@ -197,7 +210,7 @@ function paintRows(rows, filtering) {
   tbody.innerHTML = "";
   rows.forEach(function (r) {
     var tr = document.createElement("tr");
-    tr.appendChild(regionSelectCell(r.usermail));                 // 區別（可改）
+    tr.appendChild(regionTextCell(r.usermail));                     // 區別（唯讀，改在學員名單）
     var tdTitle = document.createElement("td"); tdTitle.textContent = getTitle(r.usermail) || "-"; tr.appendChild(tdTitle);
     [r.username || "", r.usermail, r.project, r.step, fmtTime(r.completed_at)].forEach(function (v) {
       var td = document.createElement("td"); td.textContent = v || ""; tr.appendChild(td);
@@ -288,7 +301,7 @@ function paintGrades(list) {
     var cur = window.__GRADES[key];
     var tr = document.createElement("tr");
 
-    tr.appendChild(regionSelectCell(r.usermail));                       // 區別
+    tr.appendChild(regionTextCell(r.usermail));                     // 區別（唯讀）
     var tdTitle = document.createElement("td"); tdTitle.textContent = getTitle(r.usermail) || "-"; tr.appendChild(tdTitle);
     [r.username || "", r.usermail, r.project].forEach(function (v) {
       var td = document.createElement("td"); td.textContent = v || ""; tr.appendChild(td);
@@ -333,6 +346,74 @@ function exportGrades() {
     lines.push([getRegion(r.usermail), getTitle(r.usermail), r.username || "", r.usermail, r.project, (s != null ? s : ""), (s != null && s !== "" ? "已公佈" : "未公佈")].map(csvCell).join(","));
   });
   downloadCsv("測驗成績.csv", lines);
+}
+
+/* ---------- 學員名單（一人一列，在此指定區別） ---------- */
+function buildRoster() {
+  var map = {};
+  (window.__ADMIN_ROWS || []).forEach(function (r) {
+    if (!map[r.usermail]) map[r.usermail] = { usermail: r.usermail, username: r.username || "", count: 0 };
+    map[r.usermail].count++;
+    if (!map[r.usermail].username && r.username) map[r.usermail].username = r.username;
+  });
+  return Object.keys(map).map(function (k) { return map[k]; });
+}
+function renderRoster() {
+  var el = document.getElementById("adminView");
+  var list = buildRoster();
+  window.__ROSTER = list;
+
+  el.innerHTML =
+    '<div class="admin-bar">' +
+      '<div class="admin-stats"><span class="stat"><b>' + list.length + '</b> 位使用者</span></div>' +
+      '<div class="admin-tools">' +
+        regionFilterHtml("rosterRegion") +
+        '<input id="rosterSearch" class="admin-search" type="text" placeholder="搜尋 姓名 / email…" />' +
+        '<button id="rosterCsv" class="btn btn-primary">匯出名單 CSV</button>' +
+        '<button id="rosterReload" class="btn btn-ghost">重新整理</button>' +
+      '</div>' +
+    '</div>' +
+    '<p class="grade-hint">💡 這裡一位使用者一列，在「區別」欄指定一次即可（已在對照表的會自動帶入）。此設定會套用到「學習進度」「成績管理」的區別顯示與篩選。</p>' +
+    '<div class="admin-table-wrap"><table class="admin-table">' +
+      '<thead><tr><th style="width:150px">區別</th><th>職位</th><th>姓名</th><th>使用者 email</th><th>完成紀錄</th></tr></thead>' +
+      '<tbody id="rosterRows"></tbody>' +
+    '</table></div>';
+
+  function apply() {
+    var q = (document.getElementById("rosterSearch").value || "").trim().toLowerCase();
+    var rf = document.getElementById("rosterRegion").value;
+    var rows = list.filter(function (u) {
+      if (!passRegion(u.usermail, rf)) return false;
+      if (!q) return true;
+      return ((u.username || "") + " " + u.usermail + " " + getRegion(u.usermail) + " " + getTitle(u.usermail)).toLowerCase().indexOf(q) !== -1;
+    });
+    paintRoster(sortByRegionName(rows));
+  }
+  paintRoster(sortByRegionName(list));
+  document.getElementById("rosterSearch").addEventListener("input", apply);
+  document.getElementById("rosterRegion").addEventListener("change", apply);
+  document.getElementById("rosterReload").addEventListener("click", initAdmin);
+  document.getElementById("rosterCsv").addEventListener("click", function () {
+    var lines = ["區別,職位,姓名,usermail,完成紀錄數"];
+    sortByRegionName(list).forEach(function (u) {
+      lines.push([getRegion(u.usermail), getTitle(u.usermail), u.username || "", u.usermail, u.count].map(csvCell).join(","));
+    });
+    downloadCsv("學員名單.csv", lines);
+  });
+}
+function paintRoster(list) {
+  var tbody = document.getElementById("rosterRows");
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="5" class="admin-empty">目前還沒有使用者</td></tr>'; return; }
+  tbody.innerHTML = "";
+  list.forEach(function (u) {
+    var tr = document.createElement("tr");
+    tr.appendChild(regionSelectCell(u.usermail));                      // 區別（可改）
+    var tdTitle = document.createElement("td"); tdTitle.textContent = getTitle(u.usermail) || "-"; tr.appendChild(tdTitle);
+    var tdName = document.createElement("td"); tdName.textContent = u.username || ""; tr.appendChild(tdName);
+    var tdMail = document.createElement("td"); tdMail.textContent = u.usermail; tr.appendChild(tdMail);
+    var tdCnt = document.createElement("td"); tdCnt.textContent = u.count + " 筆"; tr.appendChild(tdCnt);
+    tbody.appendChild(tr);
+  });
 }
 
 /* ---------- 管理者設定 ---------- */
