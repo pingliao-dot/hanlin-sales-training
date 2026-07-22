@@ -233,7 +233,10 @@ function courseDone(idx, email, course) {
   course.steps.forEach(function (s) { if (m[s.title]) c++; });
   return c;
 }
-function activeCourses() { return (window.COURSES || []).filter(function (c) { return c.available; }); }
+function activeCourses() {
+  var list = (typeof COURSES !== "undefined") ? COURSES : [];
+  return list.filter(function (c) { return c.available; });
+}
 
 function drawMatrix() {
   var body = document.getElementById("progBody");
