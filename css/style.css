@@ -536,6 +536,11 @@ body.fs-lock { overflow: hidden; }   /* 假全螢幕時鎖住背景捲動 */
 .grade-state .pill { font-size: 12px; }
 .admin-add { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
 .admin-add .admin-search { flex: 1; min-width: 240px; }
+.region-sel {
+  border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font-family: inherit;
+  font-size: 13px; font-weight: 700; color: var(--ink); background: #fff; max-width: 130px;
+}
+.region-sel:focus { outline: none; border-color: var(--brand); }
 .admin-loading, .admin-empty { color: var(--muted); padding: 24px; text-align: center; }
 .admin-denied {
   background: #fdecea; border: 1px solid #f5c6c0; color: #a5342a;
