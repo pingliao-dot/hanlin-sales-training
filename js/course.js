@@ -300,8 +300,12 @@ function initCourse() {
         if (doneBtn.classList.contains("is-locked")) return;  // 尚未解鎖，不能按
         doneBtn.disabled = true;
         await markStepDone(courseId, i);
-        resetActiveToCurrent();
+        // 真的前進到「下一步」；已是最後一步才進結業畫面
+        var done = getDoneCount(courseId);
+        if (i + 1 < total) activeIndex = i + 1;
+        else activeIndex = (done >= total) ? null : done;
         slideIndex = 0;
+        seenLast = false;
         render();
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
