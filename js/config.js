@@ -9,5 +9,6 @@
 window.APP_CONFIG = {
   SUPABASE_URL: "https://wbmteuorxwotizmyqist.supabase.co",     // Project URL（不含 /rest/v1/）
   SUPABASE_ANON_KEY: "sb_publishable_5pqwFLfoYRJZi7QFdbdh1A_Qk1JARN3",  // Publishable key（可公開）
-  ALLOWED_DOMAIN: "hanlin.com.tw"                                // 只允許這個網域的 Google 帳號登入
+  ALLOWED_DOMAIN: "hanlin.com.tw",                               // 只允許這個網域的 Google 帳號登入
+  OWNER_EMAIL: "pingliao@hanlin.com.tw"                          // 擁有者（後台不可被移除，防止鎖死）
 };

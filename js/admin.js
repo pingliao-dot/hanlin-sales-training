@@ -27,6 +27,9 @@ async function initAdmin() {
   window.__GRADES = {};
   if (!gr.error && gr.data) gr.data.forEach(function (r) { window.__GRADES[r.usermail + "||" + r.project] = r.score; });
 
+  var ad = await window.sb.from("admins").select("email").order("email");
+  window.__ADMINS = (!ad.error && ad.data) ? ad.data.map(function (r) { return r.email; }) : [];
+
   renderShell();
 }
 
@@ -37,6 +40,7 @@ function renderShell() {
     '<div class="admin-tabs">' +
       '<button class="admin-tab' + (view === "progress" ? " on" : "") + '" data-view="progress">學習進度</button>' +
       '<button class="admin-tab' + (view === "grades" ? " on" : "") + '" data-view="grades">成績管理</button>' +
+      '<button class="admin-tab' + (view === "admins" ? " on" : "") + '" data-view="admins">管理者設定</button>' +
     '</div>' +
     '<div id="adminView"></div>';
   app.querySelectorAll(".admin-tab").forEach(function (b) {
@@ -46,6 +50,7 @@ function renderShell() {
     });
   });
   if (view === "grades") renderGrades();
+  else if (view === "admins") renderAdmins();
   else renderProgress();
 }
 
@@ -264,4 +269,97 @@ function exportGrades() {
     lines.push([r.username || "", r.usermail, r.project, (s != null ? s : ""), (s != null && s !== "" ? "已公佈" : "未公佈")].map(csvCell).join(","));
   });
   downloadCsv("測驗成績.csv", lines);
+}
+
+/* ---------- 管理者設定 ---------- */
+function renderAdmins() {
+  var el = document.getElementById("adminView");
+  var cfg = window.APP_CONFIG || {};
+  el.innerHTML =
+    '<p class="grade-hint">💡 在這裡新增／移除可進入後台的 email（限 @' + cfg.ALLOWED_DOMAIN + '）。' +
+      '所有管理者權限相同。擁有者帳號無法被移除，以免鎖死後台。</p>' +
+    '<div class="admin-add">' +
+      '<input id="newAdmin" class="admin-search" type="text" placeholder="輸入 email，例如 someone@' + cfg.ALLOWED_DOMAIN + '" />' +
+      '<button id="addAdminBtn" class="btn btn-primary">新增管理者</button>' +
+    '</div>' +
+    '<div class="admin-table-wrap"><table class="admin-table">' +
+      '<thead><tr><th>可進入後台的 email</th><th style="width:120px"></th></tr></thead>' +
+      '<tbody id="adminList"></tbody>' +
+    '</table></div>';
+
+  paintAdmins();
+  document.getElementById("addAdminBtn").addEventListener("click", addAdmin);
+  document.getElementById("newAdmin").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") addAdmin();
+  });
+}
+
+function paintAdmins() {
+  var tbody = document.getElementById("adminList");
+  var list = window.__ADMINS || [];
+  var cfg = window.APP_CONFIG || {};
+  var me = (window.CURRENT_USER || "").toLowerCase();
+  var owner = (cfg.OWNER_EMAIL || "").toLowerCase();
+
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="2" class="admin-empty">沒有資料</td></tr>'; return; }
+  tbody.innerHTML = "";
+  list.forEach(function (email) {
+    var low = email.toLowerCase();
+    var tr = document.createElement("tr");
+
+    var tdMail = document.createElement("td");
+    tdMail.textContent = email;
+    if (low === owner) {
+      var tag = document.createElement("span");
+      tag.className = "pill pill-current"; tag.style.marginLeft = "8px"; tag.textContent = "擁有者";
+      tdMail.appendChild(tag);
+    } else if (low === me) {
+      var t2 = document.createElement("span");
+      t2.className = "pill pill-done"; t2.style.marginLeft = "8px"; t2.textContent = "你";
+      tdMail.appendChild(t2);
+    }
+    tr.appendChild(tdMail);
+
+    var tdAct = document.createElement("td");
+    if (low !== owner) {   // 擁有者不可移除
+      var del = document.createElement("button");
+      del.className = "btn btn-ghost"; del.style.padding = "6px 14px"; del.style.fontSize = "13px";
+      del.textContent = "移除";
+      del.addEventListener("click", function () { removeAdmin(email); });
+      tdAct.appendChild(del);
+    }
+    tr.appendChild(tdAct);
+    tbody.appendChild(tr);
+  });
+}
+
+async function addAdmin() {
+  var input = document.getElementById("newAdmin");
+  var cfg = window.APP_CONFIG || {};
+  var email = (input.value || "").trim().toLowerCase();
+  if (!email) return;
+  if (email.slice(-(cfg.ALLOWED_DOMAIN.length + 1)) !== ("@" + cfg.ALLOWED_DOMAIN)) {
+    alert("只能新增 @" + cfg.ALLOWED_DOMAIN + " 的公司帳號。");
+    return;
+  }
+  if ((window.__ADMINS || []).some(function (e) { return e.toLowerCase() === email; })) {
+    alert("這個 email 已經是管理者了。");
+    return;
+  }
+  var res = await window.sb.from("admins").insert({ email: email });
+  if (res.error) { alert("新增失敗：" + res.error.message); return; }
+  window.__ADMINS.push(email);
+  window.__ADMINS.sort();
+  input.value = "";
+  paintAdmins();
+}
+
+async function removeAdmin(email) {
+  var cfg = window.APP_CONFIG || {};
+  if (email.toLowerCase() === (cfg.OWNER_EMAIL || "").toLowerCase()) { alert("擁有者帳號不可移除。"); return; }
+  if (!confirm("確定要移除這位管理者嗎？\n\n" + email + "\n移除後他將無法再進入後台。")) return;
+  var res = await window.sb.from("admins").delete().eq("email", email);
+  if (res.error) { alert("移除失敗：" + res.error.message); return; }
+  window.__ADMINS = (window.__ADMINS || []).filter(function (e) { return e !== email; });
+  paintAdmins();
 }
