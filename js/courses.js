@@ -101,6 +101,7 @@ const COURSES = [
   {
     id: "action-master",
     minutes: 40,          // 學習所需時間（分鐘，含自己操作）
+    gradeCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQOkNfl2u7OTj-FnoSpr-eP-Y2WhpD9w-tj8B28Y-PR_aH--XID-GkOl-3cPx7nf-aOYrRb_zGn_JKN/pub?output=csv",  // 測驗成績（Google 表單發布的 CSV）
     title: "行動大師",
     subtitle: "翰林行動大師　介紹與操作",
     desc: "認識行動大師的功能與操作方式，掌握業務作戰要領。",

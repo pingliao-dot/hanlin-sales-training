@@ -361,6 +361,65 @@ function refreshStats() {
 }
 
 /* ---------- 成績管理 ---------- */
+/* 簡易 CSV 解析（處理引號內的逗號/換行） */
+function parseCSV(text) {
+  var rows = [], row = [], cur = "", i = 0, inQ = false;
+  while (i < text.length) {
+    var ch = text[i];
+    if (inQ) {
+      if (ch === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else inQ = false; }
+      else cur += ch;
+    } else {
+      if (ch === '"') inQ = true;
+      else if (ch === ",") { row.push(cur); cur = ""; }
+      else if (ch === "\n") { row.push(cur); rows.push(row); row = []; cur = ""; }
+      else if (ch === "\r") { /* skip */ }
+      else cur += ch;
+    }
+    i++;
+  }
+  if (cur !== "" || row.length) { row.push(cur); rows.push(row); }
+  return rows;
+}
+/* 從一份表單 CSV 取 { email(小寫): 分數數字 }，同 email 取最新一筆 */
+function parseScoreCsv(text) {
+  var rows = parseCSV(text);
+  if (!rows.length) return {};
+  var h = rows[0];
+  function findCol(names) { for (var i = 0; i < h.length; i++) { var t = (h[i] || "").trim(); for (var j = 0; j < names.length; j++) if (t.indexOf(names[j]) !== -1) return i; } return -1; }
+  var ci_mail = findCol(["電子郵件", "email", "Email"]);
+  var ci_score = findCol(["分數", "Score", "score"]);
+  var map = {};
+  for (var r = 1; r < rows.length; r++) {
+    var row = rows[r];
+    if (ci_mail < 0 || ci_score < 0 || row.length <= Math.max(ci_mail, ci_score)) continue;
+    var mail = (row[ci_mail] || "").trim().toLowerCase();
+    if (mail.indexOf("@") === -1) continue;
+    var m = String(row[ci_score] || "").match(/(\d+(?:\.\d+)?)/);  // 「85 / 100」取 85
+    if (!m) continue;
+    map[mail] = m[1];   // 後面的覆蓋前面 → 最新一筆
+  }
+  return map;
+}
+/* 抓所有課程的 Google 分數（有設 gradeCsv 的），快取 */
+async function loadGoogleScores(force) {
+  if (window.__GSCORES && !force) return window.__GSCORES;
+  var map = {};
+  var courses = activeCourses().filter(function (c) { return c.gradeCsv; });
+  await Promise.all(courses.map(function (c) {
+    return fetch(c.gradeCsv).then(function (r) { return r.text(); })
+      .then(function (txt) { map[c.title] = parseScoreCsv(txt); })
+      .catch(function (e) { console.error("抓 Google 分數失敗：" + c.title, e); map[c.title] = { __error: true }; });
+  }));
+  window.__GSCORES = map;
+  return map;
+}
+function googleScore(project, email) {
+  var m = (window.__GSCORES || {})[project];
+  if (!m || m.__error) return null;
+  return (m[email] != null) ? m[email] : null;
+}
+
 function renderGrades() {
   var el = document.getElementById("adminView");
   var quizRows = (window.__ADMIN_ROWS || []).filter(function (r) { return r.step === "作測驗"; });
@@ -374,17 +433,19 @@ function renderGrades() {
       '<div class="admin-tools">' +
         regionFilterHtml("gradeRegion") +
         '<input id="gradeSearch" class="admin-search" type="text" placeholder="搜尋 姓名 / email / 課程…" />' +
-        '<button id="gradeCsv" class="btn btn-primary">匯出成績 CSV</button>' +
+        '<button id="gradeAdoptAll" class="btn btn-primary">全部採用 Google 分數</button>' +
+        '<button id="gradeCsv" class="btn btn-ghost">匯出成績 CSV</button>' +
         '<button id="gradeReload" class="btn btn-ghost">重新整理</button>' +
       '</div>' +
     '</div>' +
-    '<p class="grade-hint">💡 在「分數」欄填入成績後，業務就能在平台看到；留空則顯示「未公佈」。「區別」可直接下拉指定（新人用）。</p>' +
+    '<p class="grade-hint">💡 「Google 分數」是從表單抓回來的成績。按該列「採用」或上方「全部採用」即會填入並公佈給業務。' +
+      '<b>還沒批改完的先別採用</b>（Google 分數在批改前可能偏低）。分數欄也可手動填/改。</p>' +
     '<div class="admin-table-wrap"><table class="admin-table">' +
-      '<thead><tr><th>區別</th><th>職位</th><th>姓名</th><th>使用者 email</th><th>課程</th><th style="width:150px">分數</th><th>狀態</th></tr></thead>' +
-      '<tbody id="gradeRows"></tbody>' +
+      '<thead><tr><th>區別</th><th>職位</th><th>姓名</th><th>使用者 email</th><th>課程</th><th>Google 分數</th><th style="width:140px">分數（公佈）</th><th>狀態</th></tr></thead>' +
+      '<tbody id="gradeRows"><tr><td colspan="8" class="admin-loading">載入 Google 分數中…</td></tr></tbody>' +
     '</table></div>';
 
-  function apply() {
+  function currentList() {
     var q = (document.getElementById("gradeSearch").value || "").trim().toLowerCase();
     var rf = document.getElementById("gradeRegion").value;
     var rows = list.filter(function (r) {
@@ -392,22 +453,27 @@ function renderGrades() {
       if (!q) return true;
       return ((r.username || "") + " " + r.usermail + " " + r.project + " " + getRegion(r.usermail) + " " + getTitle(r.usermail)).toLowerCase().indexOf(q) !== -1;
     });
-    paintGrades(sortByRegionName(rows));
+    return sortByRegionName(rows);
   }
-  paintGrades(sortByRegionName(list));
+  function apply() { paintGrades(currentList()); }
+
   document.getElementById("gradeSearch").addEventListener("input", apply);
   document.getElementById("gradeRegion").addEventListener("change", apply);
   document.getElementById("gradeCsv").addEventListener("click", exportGrades);
-  document.getElementById("gradeReload").addEventListener("click", initAdmin);
+  document.getElementById("gradeReload").addEventListener("click", function () { window.__GSCORES = null; renderGrades(); });
+  document.getElementById("gradeAdoptAll").addEventListener("click", function () { adoptAll(currentList()); });
+
+  loadGoogleScores().then(function () { paintGrades(sortByRegionName(list)); });
 }
 
 function paintGrades(list) {
   var tbody = document.getElementById("gradeRows");
-  if (!list.length) { tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">目前還沒有人完成測驗</td></tr>'; return; }
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="8" class="admin-empty">目前還沒有人完成測驗</td></tr>'; return; }
   tbody.innerHTML = "";
   list.forEach(function (r) {
     var key = r.usermail + "||" + r.project;
     var cur = window.__GRADES[key];
+    var g = googleScore(r.project, r.usermail);
     var tr = document.createElement("tr");
 
     tr.appendChild(regionTextCell(r.usermail));                     // 區別（唯讀）
@@ -415,6 +481,19 @@ function paintGrades(list) {
     [r.username || "", r.usermail, r.project].forEach(function (v) {
       var td = document.createElement("td"); td.textContent = v || ""; tr.appendChild(td);
     });
+
+    // Google 分數 + 採用
+    var tdG = document.createElement("td");
+    if (g != null) {
+      var gv = document.createElement("span"); gv.className = "gscore"; gv.textContent = g + " 分"; tdG.appendChild(gv);
+      var adopt = document.createElement("button");
+      adopt.className = "btn btn-ghost adopt-btn"; adopt.textContent = "採用";
+      adopt.addEventListener("click", function () { saveGrade(r, g, tdState, input); });
+      tdG.appendChild(adopt);
+    } else {
+      tdG.innerHTML = '<span class="region-none">—</span>';
+    }
+    tr.appendChild(tdG);
 
     var tdScore = document.createElement("td");
     var input = document.createElement("input");
@@ -425,18 +504,31 @@ function paintGrades(list) {
     tdState.innerHTML = (cur != null && cur !== "") ? '<span class="pill pill-done">已公佈</span>' : '<span class="pill pill-locked">未公佈</span>';
     tr.appendChild(tdState);
 
-    input.addEventListener("change", function () { saveGrade(r, input.value.trim(), tdState); });
+    input.addEventListener("change", function () { saveGrade(r, input.value.trim(), tdState, input); });
     tbody.appendChild(tr);
   });
 }
 
-async function saveGrade(r, score, tdState) {
+async function adoptAll(list) {
+  var todo = list.filter(function (r) { return googleScore(r.project, r.usermail) != null; });
+  if (!todo.length) { alert("目前沒有可採用的 Google 分數。"); return; }
+  if (!confirm("將採用（公佈）這 " + todo.length + " 筆 Google 分數。\n請確認這些測驗都已批改完成。\n\n要繼續嗎？")) return;
+  for (var i = 0; i < todo.length; i++) {
+    var r = todo[i];
+    await saveGrade(r, googleScore(r.project, r.usermail), null, null);
+  }
+  alert("已採用並公佈 " + todo.length + " 筆成績。");
+  renderGrades();
+}
+
+async function saveGrade(r, score, tdState, input) {
   var key = r.usermail + "||" + r.project;
   if (score === "") {
     var d = await window.sb.from("grades").delete().eq("usermail", r.usermail).eq("project", r.project);
     if (d.error) { alert("儲存失敗：" + d.error.message); return; }
     delete window.__GRADES[key];
-    tdState.innerHTML = '<span class="pill pill-locked">未公佈</span>';
+    if (input) input.value = "";
+    if (tdState) tdState.innerHTML = '<span class="pill pill-locked">未公佈</span>';
     return;
   }
   var res = await window.sb.from("grades").upsert(
@@ -444,7 +536,8 @@ async function saveGrade(r, score, tdState) {
     { onConflict: "usermail,project" });
   if (res.error) { alert("儲存失敗：" + res.error.message); return; }
   window.__GRADES[key] = score;
-  tdState.innerHTML = '<span class="pill pill-done">已公佈 ✓</span>';
+  if (input) input.value = score;
+  if (tdState) tdState.innerHTML = '<span class="pill pill-done">已公佈 ✓</span>';
 }
 
 function exportGrades() {

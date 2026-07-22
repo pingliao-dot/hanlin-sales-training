@@ -562,6 +562,8 @@ body.fs-lock { overflow: hidden; }   /* 假全螢幕時鎖住背景捲動 */
 }
 .region-sel:focus { outline: none; border-color: var(--brand); }
 .region-none { color: var(--muted); font-weight: 600; }
+.gscore { font-weight: 800; color: var(--ink); }
+.adopt-btn { padding: 5px 12px; font-size: 12px; margin-left: 10px; }
 .admin-loading, .admin-empty { color: var(--muted); padding: 24px; text-align: center; }
 .admin-denied {
   background: #fdecea; border: 1px solid #f5c6c0; color: #a5342a;
