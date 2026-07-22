@@ -31,21 +31,23 @@ async function initAdmin() {
   var ad = await window.sb.from("admins").select("email").order("email");
   window.__ADMINS = (!ad.error && ad.data) ? ad.data.map(function (r) { return r.email; }) : [];
 
-  var reg = await window.sb.from("user_region").select("usermail, region");
-  window.__REGIONS = {};
-  if (!reg.error && reg.data) reg.data.forEach(function (r) { window.__REGIONS[r.usermail] = r.region; });
+  var reg = await window.sb.from("user_region").select("usermail, region, title");
+  window.__REGIONS = {};   // { email: { region, title } } 手動指定
+  if (!reg.error && reg.data) reg.data.forEach(function (r) { window.__REGIONS[r.usermail] = { region: r.region, title: r.title }; });
 
   renderShell();
 }
 
-/* ---------- 區別 / 職位 ---------- */
+/* ---------- 區別 / 職位（手動指定優先，其次 CSV 對照） ---------- */
 function getRegion(email) {
   var o = (window.__REGIONS || {})[email];
-  if (o) return o;
+  if (o && o.region) return o.region;
   var m = (window.REGION_MAP || {})[email];
   return (m && m.r) || "";
 }
 function getTitle(email) {
+  var o = (window.__REGIONS || {})[email];
+  if (o && o.title) return o.title;
   var m = (window.REGION_MAP || {})[email];
   return (m && m.t) || "";
 }
@@ -82,34 +84,32 @@ function regionTextCell(email) {
   else { td.innerHTML = '<span class="region-none">未指定</span>'; }
   return td;
 }
-/* 可編輯區別下拉（學員名單用） */
-function regionSelectCell(email, onChanged) {
-  var cur = getRegion(email);
+/* 可編輯下拉（學員名單用）：field = "region" 或 "title" */
+function pickerCell(email, field, list, getVal) {
+  var cur = getVal(email);
   var opts = '<option value="">未指定</option>';
-  (window.REGION_LIST || []).forEach(function (rg) {
-    opts += '<option value="' + rg + '"' + (rg === cur ? " selected" : "") + '>' + rg + '</option>';
+  (list || []).forEach(function (v) {
+    opts += '<option value="' + v + '"' + (v === cur ? " selected" : "") + '>' + v + '</option>';
   });
   var td = document.createElement("td");
   var sel = document.createElement("select");
   sel.className = "region-sel";
   sel.innerHTML = opts;
-  sel.addEventListener("change", function () {
-    setRegion(email, sel.value).then(function () { if (onChanged) onChanged(); });
-  });
+  sel.addEventListener("change", function () { setField(email, field, sel.value); });
   td.appendChild(sel);
   return td;
 }
-async function setRegion(email, region) {
-  if (region === "") {
-    await window.sb.from("user_region").delete().eq("usermail", email);
-    delete window.__REGIONS[email];
-  } else {
-    var res = await window.sb.from("user_region").upsert(
-      { usermail: email, region: region, updated_at: new Date().toISOString() },
-      { onConflict: "usermail" });
-    if (res.error) { alert("儲存失敗：" + res.error.message); return; }
-    window.__REGIONS[email] = region;
-  }
+function regionSelectCell(email) { return pickerCell(email, "region", window.REGION_LIST, getRegion); }
+function titleSelectCell(email) { return pickerCell(email, "title", window.TITLE_LIST, getTitle); }
+
+/* 更新單一欄位（保留另一欄），空值 = 清除手動指定、回到 CSV 對照 */
+async function setField(email, field, value) {
+  var payload = { usermail: email, updated_at: new Date().toISOString() };
+  payload[field] = (value === "" ? null : value);
+  var res = await window.sb.from("user_region").upsert(payload, { onConflict: "usermail" });
+  if (res.error) { alert("儲存失敗：" + res.error.message); return; }
+  if (!window.__REGIONS[email]) window.__REGIONS[email] = {};
+  window.__REGIONS[email][field] = (value === "" ? null : value);
 }
 
 /* ---------- 分頁框架 ---------- */
@@ -375,7 +375,7 @@ function renderRoster() {
     '</div>' +
     '<p class="grade-hint">💡 這裡一位使用者一列，在「區別」欄指定一次即可（已在對照表的會自動帶入）。此設定會套用到「學習進度」「成績管理」的區別顯示與篩選。</p>' +
     '<div class="admin-table-wrap"><table class="admin-table">' +
-      '<thead><tr><th style="width:150px">區別</th><th>職位</th><th>姓名</th><th>使用者 email</th><th>完成紀錄</th></tr></thead>' +
+      '<thead><tr><th style="width:150px">區別</th><th style="width:120px">職位</th><th>姓名</th><th>使用者 email</th><th>完成紀錄</th></tr></thead>' +
       '<tbody id="rosterRows"></tbody>' +
     '</table></div>';
 
@@ -408,7 +408,7 @@ function paintRoster(list) {
   list.forEach(function (u) {
     var tr = document.createElement("tr");
     tr.appendChild(regionSelectCell(u.usermail));                      // 區別（可改）
-    var tdTitle = document.createElement("td"); tdTitle.textContent = getTitle(u.usermail) || "-"; tr.appendChild(tdTitle);
+    tr.appendChild(titleSelectCell(u.usermail));                       // 職位（可改）
     var tdName = document.createElement("td"); tdName.textContent = u.username || ""; tr.appendChild(tdName);
     var tdMail = document.createElement("td"); tdMail.textContent = u.usermail; tr.appendChild(tdMail);
     var tdCnt = document.createElement("td"); tdCnt.textContent = u.count + " 筆"; tr.appendChild(tdCnt);
