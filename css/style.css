@@ -563,6 +563,20 @@ body.fs-lock { overflow: hidden; }   /* 假全螢幕時鎖住背景捲動 */
 .region-sel:focus { outline: none; border-color: var(--brand); }
 .region-none { color: var(--muted); font-weight: 600; }
 .gscore { font-weight: 800; color: var(--ink); }
+/* 必做名單 / 應到未到 */
+.req-badge {
+  display: inline-block; margin-left: 8px; background: #e7ecff; color: var(--brand);
+  font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; vertical-align: middle;
+}
+.absent-tag { color: #c0392b; font-weight: 800; }
+.admin-table tbody tr.row-absent { background: #fff6f5; }
+.admin-table tbody tr.row-absent:hover { background: #ffeceb; }
+.stat.stat-warn { background: #fdecea; border-color: #f5c6c0; }
+.stat.stat-warn b { color: #c0392b; }
+.admin-warn {
+  background: #fff8ec; border: 1px solid #f6dfb0; color: #7a5a12;
+  border-radius: 10px; padding: 12px 16px; font-size: 13.5px; margin: 0 0 14px; line-height: 1.7;
+}
 .adopt-btn { padding: 5px 12px; font-size: 12px; margin-left: 10px; }
 .admin-loading, .admin-empty { color: var(--muted); padding: 24px; text-align: center; }
 .admin-denied {

@@ -43,7 +43,10 @@ function getRegion(email) {
   var o = (window.__REGIONS || {})[email];
   if (o && o.region) return o.region;
   var m = (window.REGION_MAP || {})[email];
-  return (m && m.r) || "";
+  if (m && m.r) return m.r;
+  var q = requiredIndex()[(email || "").toLowerCase()];   // 必做名單的部門當備援
+  if (q && q.dept) return deptToRegion(q.dept);
+  return "";
 }
 function getTitle(email) {
   var o = (window.__REGIONS || {})[email];
@@ -273,8 +276,10 @@ function drawMatrix() {
     cells += '<td class="mtx-cell ' + (opct >= 100 ? "mtx-done" : opct > 0 ? "mtx-part" : "mtx-zero") + '">' +
       '<div class="mtx-bar"><span style="width:' + opct + '%"></span></div>' +
       '<div class="mtx-frac">' + opct + '%</div></td>';
-    bodyRows += '<tr><td>' + (getRegion(u.usermail) || '<span class="region-none">未指定</span>') + '</td>' +
-      '<td>' + (u.username || u.usermail) + '</td>' + cells + '</tr>';
+    var nameCell = (u.username || u.usermail) + (u.req ? '<span class="req-badge">必做</span>' : "");
+    bodyRows += '<tr' + (u.req && doneSum === 0 ? ' class="row-absent"' : '') + '>' +
+      '<td>' + (getRegion(u.usermail) || '<span class="region-none">未指定</span>') + '</td>' +
+      '<td>' + nameCell + '</td>' + cells + '</tr>';
   });
   if (!members.length) bodyRows = '<tr><td colspan="' + (courses.length + 3) + '" class="admin-empty">沒有資料</td></tr>';
 
@@ -551,12 +556,34 @@ function exportGrades() {
 }
 
 /* ---------- 學員名單（一人一列，在此指定區別） ---------- */
+/* 必做名單索引：email → {name, dept, emp} */
+function requiredIndex() {
+  if (window.__REQIDX) return window.__REQIDX;
+  var idx = {};
+  (window.REQUIRED_LIST || []).forEach(function (p) {
+    if (p.mail) idx[p.mail.toLowerCase()] = p;
+  });
+  window.__REQIDX = idx;
+  return idx;
+}
+function isRequired(email) { return !!requiredIndex()[(email || "").toLowerCase()]; }
+/* 名單上的部門「國小南二區」→「南二區」，可當區別的備援 */
+function deptToRegion(dept) { return String(dept || "").replace(/^國小/, ""); }
+
+/* 學員名單 = 平台上有紀錄的人 ∪ 必做名單（沒紀錄者 count=0 → 應到未到） */
 function buildRoster() {
   var map = {};
   (window.__ADMIN_ROWS || []).forEach(function (r) {
-    if (!map[r.usermail]) map[r.usermail] = { usermail: r.usermail, username: r.username || "", count: 0 };
+    if (!map[r.usermail]) map[r.usermail] = { usermail: r.usermail, username: r.username || "", count: 0, req: false };
     map[r.usermail].count++;
     if (!map[r.usermail].username && r.username) map[r.usermail].username = r.username;
+  });
+  (window.REQUIRED_LIST || []).forEach(function (p) {
+    if (!p.mail) return;                       // 缺 email 的另外提示，無法比對
+    var m = p.mail.toLowerCase();
+    if (!map[m]) map[m] = { usermail: m, username: p.name || "", count: 0, req: true };
+    else { map[m].req = true; if (!map[m].username) map[m].username = p.name || ""; }
+    map[m].dept = p.dept || "";
   });
   return Object.keys(map).map(function (k) { return map[k]; });
 }
@@ -565,17 +592,40 @@ function renderRoster() {
   var list = buildRoster();
   window.__ROSTER = list;
 
+  // 必做名單統計
+  var reqAll = (window.REQUIRED_LIST || []);
+  var reqWithMail = reqAll.filter(function (p) { return p.mail; });
+  var noMail = reqAll.filter(function (p) { return !p.mail; });
+  var started = reqWithMail.filter(function (p) {
+    var u = list.filter(function (x) { return x.usermail === p.mail.toLowerCase(); })[0];
+    return u && u.count > 0;
+  }).length;
+  var absent = reqWithMail.length - started;
+
   el.innerHTML =
     '<div class="admin-bar">' +
-      '<div class="admin-stats"><span class="stat"><b>' + list.length + '</b> 位使用者</span></div>' +
+      '<div class="admin-stats">' +
+        '<span class="stat"><b>' + reqAll.length + '</b> 位應到（必做名單）</span>' +
+        '<span class="stat"><b>' + started + '</b> 已報到</span>' +
+        '<span class="stat stat-warn"><b>' + absent + '</b> 應到未到</span>' +
+      '</div>' +
       '<div class="admin-tools">' +
+        '<select id="rosterStatus" class="admin-search" style="min-width:160px">' +
+          '<option value="__all">全部人員</option>' +
+          '<option value="__req">只看必做名單</option>' +
+          '<option value="__absent">應到未到（零進度）</option>' +
+          '<option value="__extra">名單外的人</option>' +
+        '</select>' +
         regionFilterHtml("rosterRegion") +
         '<input id="rosterSearch" class="admin-search" type="text" placeholder="搜尋 姓名 / email…" />' +
         '<button id="rosterCsv" class="btn btn-primary">匯出名單 CSV</button>' +
         '<button id="rosterReload" class="btn btn-ghost">重新整理</button>' +
       '</div>' +
     '</div>' +
-    '<p class="grade-hint">💡 這裡一位使用者一列，在「區別」欄指定一次即可（已在對照表的會自動帶入）。此設定會套用到「學習進度」「成績管理」的區別顯示與篩選。</p>' +
+    (noMail.length ? '<div class="admin-warn">⚠️ 必做名單中有 <b>' + noMail.length + '</b> 人查不到 email，無法追蹤：' +
+      noMail.map(function (p) { return p.name + "（" + p.emp + "）"; }).join("、") +
+      '。請把他們補進「業務資料表」後再給我更新，或確認他們是否已建公司帳號。</div>' : '') +
+    '<p class="grade-hint">💡 標「必做」的是新人必修名單。<b>完成紀錄 0 筆 = 應到未到</b>（還沒進平台）。區別／職位可直接下拉指定。</p>' +
     '<div class="admin-table-wrap"><table class="admin-table">' +
       '<thead><tr><th style="width:150px">區別</th><th style="width:120px">職位</th><th>姓名</th><th>使用者 email</th><th>完成紀錄</th></tr></thead>' +
       '<tbody id="rosterRows"></tbody>' +
@@ -584,7 +634,11 @@ function renderRoster() {
   function apply() {
     var q = (document.getElementById("rosterSearch").value || "").trim().toLowerCase();
     var rf = document.getElementById("rosterRegion").value;
+    var st = document.getElementById("rosterStatus").value;
     var rows = list.filter(function (u) {
+      if (st === "__req" && !u.req) return false;
+      if (st === "__absent" && !(u.req && u.count === 0)) return false;
+      if (st === "__extra" && u.req) return false;
       if (!passRegion(u.usermail, rf)) return false;
       if (!q) return true;
       return ((u.username || "") + " " + u.usermail + " " + getRegion(u.usermail) + " " + getTitle(u.usermail)).toLowerCase().indexOf(q) !== -1;
@@ -594,11 +648,13 @@ function renderRoster() {
   paintRoster(sortByRegionName(list));
   document.getElementById("rosterSearch").addEventListener("input", apply);
   document.getElementById("rosterRegion").addEventListener("change", apply);
+  document.getElementById("rosterStatus").addEventListener("change", apply);
   document.getElementById("rosterReload").addEventListener("click", initAdmin);
   document.getElementById("rosterCsv").addEventListener("click", function () {
-    var lines = ["區別,職位,姓名,usermail,完成紀錄數"];
+    var lines = ["區別,職位,姓名,usermail,是否必做,狀態,完成紀錄數"];
     sortByRegionName(list).forEach(function (u) {
-      lines.push([getRegion(u.usermail), getTitle(u.usermail), u.username || "", u.usermail, u.count].map(csvCell).join(","));
+      lines.push([getRegion(u.usermail), getTitle(u.usermail), u.username || "", u.usermail,
+        (u.req ? "必做" : ""), (u.count === 0 ? "尚未開始" : "已開始"), u.count].map(csvCell).join(","));
     });
     downloadCsv("學員名單.csv", lines);
   });
@@ -609,11 +665,18 @@ function paintRoster(list) {
   tbody.innerHTML = "";
   list.forEach(function (u) {
     var tr = document.createElement("tr");
+    if (u.req && u.count === 0) tr.className = "row-absent";           // 應到未到 → 整列標色
     tr.appendChild(regionSelectCell(u.usermail));                      // 區別（可改）
     tr.appendChild(titleSelectCell(u.usermail));                       // 職位（可改）
-    var tdName = document.createElement("td"); tdName.textContent = u.username || ""; tr.appendChild(tdName);
+    var tdName = document.createElement("td");
+    tdName.textContent = u.username || "";
+    if (u.req) { var b = document.createElement("span"); b.className = "req-badge"; b.textContent = "必做"; tdName.appendChild(b); }
+    tr.appendChild(tdName);
     var tdMail = document.createElement("td"); tdMail.textContent = u.usermail; tr.appendChild(tdMail);
-    var tdCnt = document.createElement("td"); tdCnt.textContent = u.count + " 筆"; tr.appendChild(tdCnt);
+    var tdCnt = document.createElement("td");
+    if (u.count === 0) tdCnt.innerHTML = '<span class="absent-tag">尚未開始</span>';
+    else tdCnt.textContent = u.count + " 筆";
+    tr.appendChild(tdCnt);
     tbody.appendChild(tr);
   });
 }
